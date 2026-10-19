@@ -84,6 +84,17 @@ test('la propuesta Costa Sur filtra el catálogo y actualiza oferta, inversión 
     await page.selectOption('#offer-filter', 'BUY');
     assert.match(await page.locator('#offer-title').innerText(), /INTEGRA/);
     assert.match(await page.locator('#quote-net').innerText(), /12,250/);
+    await page.fill('#equipment-count', '1');
+    const summary = await page.locator('.catalog-summary').innerText();
+    assert.match(summary, /Robótica para primaria/);
+    assert.match(summary, /1.º a 3.º/);
+    assert.match(summary, /3 por equipo/);
+    assert.match(summary, /1 equipo/);
+    assert.match(summary, /INTEGRA/);
+    assert.doesNotMatch(summary, /mínimo comercial/);
+    assert.equal(await page.locator('#catalog-minimum-note').isVisible(), true);
+    await page.fill('#equipment-count', '5');
+    assert.equal(await page.locator('#catalog-minimum-note').isVisible(), false);
   } finally { await page.close(); }
 });
 
@@ -289,7 +300,7 @@ test('la capacidad recomendada por equipo depende de la tecnología y del tamañ
     await page.selectOption('#level-filter', 'primaria');
     assert.ok(await page.locator('#program-filter option[value="Spike"]').count(), 'Spike debe estar disponible para primaria alta');
     await page.selectOption('#program-filter', 'Spike');
-    assert.match(await page.locator('#catalog-status').innerText(), /4\.º a 6\.º primaria/i);
+    assert.match(await page.locator('#catalog-status').innerText(), /4\.º–6\.º primaria/i);
     const brand = await page.locator('.brand img').evaluate(img => ({alt:img.alt,loaded:img.complete && img.naturalWidth > 0}));
     assert.equal(brand.alt, 'GuateGeeks');
     assert.equal(brand.loaded, true);

@@ -138,7 +138,14 @@
     const validGroupSize = Number.isSafeInteger(students) && students >= 1;
     const recommendedTeams = validGroupSize ? Math.ceil(students / program.studentsPerTeam) : 0;
     const rotations = validGroupSize ? Math.ceil(students / capacity) : 0;
-    $('catalog-status').textContent = `${quantity < 5 ? 'Escenario informativo · mínimo comercial 5 equipos. ' : ''}${program.name} · ${program.levelName} · ${program.studentsPerTeam} estudiantes por equipo · ${quantity} ${quantity === 1 ? 'equipo' : 'equipos'} · ${model.title}`;
+    $('catalog-program-summary').textContent = program.name;
+    $('catalog-level-summary').textContent = program.level === 'primaria'
+      ? program.levelName.replace('Primaria · ','')
+      : program.level === 'secundaria' ? '4.º–6.º primaria · secundaria y bachillerato' : program.levelName;
+    $('catalog-team-summary').textContent = `${program.studentsPerTeam} por equipo`;
+    $('catalog-equipment-summary').textContent = `${quantity} ${quantity === 1 ? 'equipo' : 'equipos'}`;
+    $('catalog-model-summary').textContent = model.title;
+    $('catalog-minimum-note').hidden = quantity >= 5;
     $('student-count-help').textContent = validGroupSize
       ? `Referencia: ${program.studentsPerTeam} estudiantes por equipo. Para ${students} estudiantes se sugieren ${recommendedTeams} ${recommendedTeams === 1 ? 'equipo' : 'equipos'}. Con los ${quantity} seleccionados hay capacidad simultánea para ${capacity}; se estiman ${rotations} ${rotations === 1 ? 'rotación' : 'rotaciones'}. Ajusta los equipos según el horario del colegio.`
       : `Referencia: ${program.studentsPerTeam} estudiantes por equipo. Ingresa la cantidad de estudiantes para estimar los equipos necesarios.`;

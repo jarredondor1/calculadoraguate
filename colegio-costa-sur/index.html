@@ -37,7 +37,10 @@
         <div class="field field-small"><label for="equipment-count">Equipos</label><input id="equipment-count" type="number" min="1" max="100" step="1" value="5"></div>
         <div class="field field-small" id="rental-field" hidden><label for="rental-period">Duración de renta</label><select id="rental-period"><option value="1">2 meses</option><option value="2">4 meses</option><option value="3">6 meses</option><option value="4">8 meses</option></select></div>
       </div>
-      <p id="catalog-status" class="catalog-status" aria-live="polite"></p>
+      <div id="catalog-status" class="catalog-status" aria-live="polite" aria-label="Resumen de selección">
+        <div class="catalog-summary"><strong id="catalog-program-summary"></strong><span id="catalog-level-summary"></span><span id="catalog-team-summary"></span><span id="catalog-equipment-summary"></span><span id="catalog-model-summary"></span></div>
+        <span id="catalog-minimum-note" class="catalog-minimum-note" hidden>Escenario informativo · mínimo comercial: 5 equipos</span>
+      </div>
     </section>
 
     <section class="offer-card" id="offer" aria-labelledby="offer-title">
