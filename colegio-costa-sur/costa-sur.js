@@ -24,7 +24,7 @@
     if (mode !== 'BUY') items.push({title:'Socrates Aprende',detail:`Acceso a la plataforma educativa durante ${months} meses, con semanas, lecciones y actividades interactivas.`});
     if (mode === 'BUY') {
       items.push({title:'Implementación inicial',detail:'Orientación para poner en marcha el equipamiento en el aula.'});
-      items.push({title:'Acompañamiento inicial',detail:'Soporte durante los primeros 2 meses.'});
+      items.push({title:'Acompañamiento inicial',detail:'Seguimiento al equipo durante los primeros 2 meses. Incluye 1 hora de capacitación para el uso del equipo; cualquier tiempo adicional se cotiza por separado.'});
     } else {
       items.push({title:'Recursos para el aula',detail:'Actividades prácticas y materiales de apoyo para integrar la tecnología al aprendizaje.'});
       items.push({title:'Acompañamiento y soporte',detail:`Orientación, seguimiento y soporte durante ${months} meses.`});

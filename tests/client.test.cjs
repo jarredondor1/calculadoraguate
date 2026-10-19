@@ -140,6 +140,9 @@ test('los beneficios cambian por modalidad y Socrates solo se incluye en FLEX y 
     assert.equal(await page.locator('#socrates-inclusion').isVisible(), false);
     assert.match(await page.locator('#platform-excluded').innerText(), /no está incluida en INTEGRA/i);
     assert.match(await page.locator('#included-features').innerText(), /implementación inicial/i);
+    assert.match(await page.locator('#included-features').innerText(), /seguimiento al equipo durante los primeros 2 meses/i);
+    assert.match(await page.locator('#included-features').innerText(), /1 hora de capacitación para el uso del equipo/i);
+    assert.match(await page.locator('#included-features').innerText(), /tiempo adicional se cotiza por separado/i);
   } finally { await page.close(); }
 });
 
