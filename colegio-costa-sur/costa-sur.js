@@ -24,7 +24,7 @@
     if (mode !== 'BUY') items.push({title:'Socrates Aprende',detail:`Acceso a la plataforma educativa durante ${months} meses, con semanas, lecciones y actividades interactivas.`});
     if (mode === 'BUY') {
       items.push({title:'Implementación inicial',detail:'Orientación para poner en marcha el equipamiento en el aula.'});
-      items.push({title:'Acompañamiento inicial',detail:'Seguimiento al equipo durante los primeros 2 meses. Incluye 1 hora de capacitación para el uso del equipo; cualquier tiempo adicional se cotiza por separado.'});
+      items.push({title:'Capacitación de uso',detail:'Incluye 1 hora de capacitación para el uso del equipo. El tiempo adicional se cotiza por separado.'});
     } else {
       items.push({title:'Recursos para el aula',detail:'Actividades prácticas y materiales de apoyo para integrar la tecnología al aprendizaje.'});
       items.push({title:'Acompañamiento y soporte',detail:`Orientación, seguimiento y soporte durante ${months} meses.`});
@@ -137,7 +137,7 @@
     $('platform-excluded').hidden = platformIncluded;
     $('socrates-description').textContent = `Acceso durante ${quote.months} meses a semanas de aprendizaje, lecciones y actividades interactivas para acompañar el trabajo en clase.`;
     $('fineprint').textContent = isBuy
-      ? `Precio de INTEGRA para ${quantity} ${quantity===1?'equipo':'equipos'}. La capacitación docente se cotiza por separado; el precio final se confirma con GuateGeeks.`
+      ? `Precio de INTEGRA para ${quantity} ${quantity===1?'equipo':'equipos'}. Incluye 1 hora de capacitación para el uso del equipo; el tiempo adicional se cotiza por separado.`
       : `Estimación para ${quantity} ${quantity===1?'equipo':'equipos'} y ${studentsInput.value || 'el grupo seleccionado'} estudiantes. La inversión corresponde al modelo ${model.title}; la cuota del colegio se puede ajustar. La cotización final se confirma con GuateGeeks.`;
   }
 

@@ -140,9 +140,10 @@ test('los beneficios cambian por modalidad y Socrates solo se incluye en FLEX y 
     assert.equal(await page.locator('#socrates-inclusion').isVisible(), false);
     assert.match(await page.locator('#platform-excluded').innerText(), /no está incluida en INTEGRA/i);
     assert.match(await page.locator('#included-features').innerText(), /implementación inicial/i);
-    assert.match(await page.locator('#included-features').innerText(), /seguimiento al equipo durante los primeros 2 meses/i);
+    assert.match(await page.locator('#included-features').innerText(), /capacitación de uso/i);
     assert.match(await page.locator('#included-features').innerText(), /1 hora de capacitación para el uso del equipo/i);
     assert.match(await page.locator('#included-features').innerText(), /tiempo adicional se cotiza por separado/i);
+    assert.doesNotMatch(await page.locator('#included-features').innerText(), /seguimiento al equipo|primeros 2 meses/i);
   } finally { await page.close(); }
 });
 
@@ -153,8 +154,10 @@ test('INTEGRA presenta compra y capacitación aparte sin simulación de cobro es
     await page.selectOption('#offer-filter', 'BUY');
     assert.equal(await page.locator('#explorer').isVisible(), false);
     assert.equal(await page.locator('#integra-details').isVisible(), true);
-    assert.match(await page.locator('#integra-training').innerText(), /se cotiza por separado/i);
+    assert.match(await page.locator('#integra-training').innerText(), /incluye 1 hora/i);
+    assert.match(await page.locator('#integra-training').innerText(), /tiempo adicional.*se cotiza por separado/i);
     assert.match(await page.locator('#integra-pros').innerText(), /propiedad del equipo desde el inicio/i);
+    assert.match(await page.locator('#integra-considerations').innerText(), /tiempo adicional de capacitación se cotiza por separado/i);
     assert.match(await page.locator('#integra-considerations').innerText(), /Socrates Aprende no está incluida/i);
     await page.setViewportSize({ width: 390, height: 844 });
     const integraLayout = await page.locator('#integra-details').evaluate(el => ({
