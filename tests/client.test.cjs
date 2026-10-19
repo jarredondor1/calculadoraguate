@@ -87,6 +87,27 @@ test('la propuesta Costa Sur filtra el catálogo y actualiza oferta, inversión 
   } finally { await page.close(); }
 });
 
+test('el precio por equipo, la sugerencia y la estimación se recalculan con el escenario completo', async () => {
+  const page = await newPage();
+  try {
+    await page.goto(`${baseURL}/colegio-costa-sur/index.html`);
+    await page.selectOption('#program-filter', 'TaleBot');
+    await page.selectOption('#offer-filter', 'BUY');
+    await page.fill('#equipment-count', '1');
+    await page.fill('#student-count', '50');
+    await page.fill('#school-fee', '100');
+    assert.match(await page.locator('#quote-net').innerText(), /2,000/);
+    assert.match(await page.locator('#quote-basis').innerText(), /1 equipo × Q 2,000\.00 por equipo/);
+    assert.match(await page.locator('#suggested-fee').innerText(), /10/);
+    await page.fill('#equipment-count', '3');
+    assert.match(await page.locator('#quote-net').innerText(), /6,000/);
+    assert.match(await page.locator('#quote-basis').innerText(), /3 equipos × Q 2,000\.00 por equipo/);
+    assert.match(await page.locator('#suggested-fee').innerText(), /25/);
+    assert.match(await page.locator('#revenue-estimate').innerText(), /40,000/);
+    assert.match(await page.locator('#gross-difference').innerText(), /33,280/);
+  } finally { await page.close(); }
+});
+
 test('la propuesta destaca el precio sin IVA y mantiene visible el total con IVA', async () => {
   const page = await newPage();
   try {
@@ -417,7 +438,7 @@ test('la propuesta Costa Sur comunica la inversión y el escenario sugerido', as
     assert.match(await page.title(), /Colegio Costa Sur/);
     const offer = await page.locator('#offer').innerText();
     assert.match(offer, /EVOLUCIONA/);
-    assert.equal((offer.match(/8 meses/g) || []).length, 1);
+    assert.equal(await page.locator('#term-badge').innerText(), '8 meses');
     assert.match(await page.locator('#quote-net').innerText(), /63,494\.00/);
     assert.match(await page.locator('#quote-total-with-vat').innerText(), /71,113\.28/);
     assert.match(await page.locator('#suggested-fee').innerText(), /200/);
@@ -438,7 +459,7 @@ test('el colegio ajusta su cuota y observa el efecto en vivo', async () => {
     await page.fill('#student-count', '30');
     assert.match(await page.locator('#revenue-estimate').innerText(), /60,000\.00/);
     assert.match(await page.locator('#quote-total-with-vat').innerText(), /71,113\.28/);
-    assert.match(await page.locator('body').innerText(), /Cuota sugerida por GuateGeeks/);
+    assert.match(await page.locator('body').innerText(), /Cobro mensual sugerido por GuateGeeks/);
     assert.match(await page.locator('body').innerText(), /Cobro mensual por estudiante que evaluaría el colegio/);
   } finally { await page.close(); }
 });

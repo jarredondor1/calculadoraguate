@@ -58,6 +58,9 @@
     $('quote-net').textContent = fmt(quote.net);
     $('quote-total-with-vat').textContent = fmt(quote.gross);
     $('tax-note').textContent = `Incluye IVA de ${fmt(quote.tax)}`;
+    if (mode === 'BUY') $('quote-basis').textContent = `${quantity} ${quantity === 1 ? 'equipo' : 'equipos'} × ${fmt(program.buy)} por equipo = ${fmt(quote.net)} sin IVA`;
+    else if (mode === 'RENT') $('quote-basis').textContent = `Renta de ${quantity} ${quantity === 1 ? 'equipo' : 'equipos'} durante ${quote.months} meses · ${fmt(quote.net)} sin IVA`;
+    else $('quote-basis').textContent = `${model.title} para ${quantity} ${quantity === 1 ? 'equipo' : 'equipos'} · ${quote.months} meses`;
     const isEvol = mode === 'EVO8' || mode === 'EVO16';
     const isBuy = mode === 'BUY';
     $('initial-label').textContent = isEvol ? 'Pago inicial · 20 %' : isBuy ? 'Pago inicial · 100 %' : 'Pago inicial';
@@ -70,6 +73,7 @@
     $('experience-title').textContent = program.name;
     $('catalog-status').textContent = `${quantity < 5 ? 'Escenario informativo · mínimo comercial 5 equipos. ' : ''}${program.name} · ${program.levelName} · ${quantity} ${quantity === 1 ? 'equipo' : 'equipos'} · ${model.title}`;
     $('suggested-fee').textContent = fmt(Math.ceil((quote.gross / Math.max(1,students) / quote.months / .75) / 5) * 5);
+    $('suggested-description').textContent = `Referencia para ${quantity} ${quantity === 1 ? 'equipo' : 'equipos'} y ${Number.isFinite(students) && students > 0 ? students : 'el grupo seleccionado'} estudiantes con ${model.title}; la institución decide su cobro final.`;
     const validStudents = Number.isSafeInteger(students) && students >= 1 && students <= 500;
     const validFee = Number.isFinite(fee) && fee >= 1 && fee <= 10000;
     $('validation-message').hidden = validStudents && validFee;
