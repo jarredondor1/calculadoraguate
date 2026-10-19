@@ -131,6 +131,24 @@ test('el cobro sigue la sugerencia al cambiar el escenario y FLEX financia 80% t
   } finally { await page.close(); }
 });
 
+test('los beneficios cambian por modalidad y Socrates solo se incluye en FLEX y EVOLUCIONA', async () => {
+  const page = await newPage();
+  try {
+    await page.goto(`${baseURL}/colegio-costa-sur/index.html`);
+    for (const mode of ['RENT', 'EVO8', 'EVO16']) {
+      await page.selectOption('#offer-filter', mode);
+      assert.equal(await page.locator('#socrates-inclusion').isVisible(), true, mode);
+      assert.equal(await page.locator('#included-title').innerText(), `Qué incluye ${await page.locator('#offer-title').innerText()}`);
+      assert.equal(await page.locator('#socrates-access-link').getAttribute('href'), 'https://socrates-439aa.web.app/#/semana/s01');
+      assert.match(await page.locator('#included-features').innerText(), /Socrates Aprende/);
+    }
+    await page.selectOption('#offer-filter', 'BUY');
+    assert.equal(await page.locator('#socrates-inclusion').isVisible(), false);
+    assert.match(await page.locator('#platform-excluded').innerText(), /no está incluida en INTEGRA/i);
+    assert.match(await page.locator('#included-features').innerText(), /implementación inicial/i);
+  } finally { await page.close(); }
+});
+
 test('la propuesta destaca el precio sin IVA y mantiene visible el total con IVA', async () => {
   const page = await newPage();
   try {

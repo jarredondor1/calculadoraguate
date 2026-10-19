@@ -14,6 +14,23 @@
     EVO8: {title:'EVOLUCIONA 8',months:8,description:'Un ciclo de aprendizaje con acompañamiento y equipamiento que queda en propiedad de la institución al completar el contrato.'},
     EVO16: {title:'EVOLUCIONA 16',months:16,description:'Dos ciclos de aprendizaje con acompañamiento y equipamiento que queda en propiedad de la institución al completar el contrato.'}
   };
+  function includedItems(mode, program, months) {
+    const equipment = mode === 'BUY'
+      ? `${program.name} para el aula; propiedad del colegio desde la compra.`
+      : mode === 'RENT'
+        ? `${program.name} disponible en renta durante ${months} meses; el equipo permanece en propiedad de GuateGeeks.`
+        : `${program.name} para el aula; pasa a ser propiedad del colegio al completar ${months} meses.`;
+    const items = [{title:'Equipamiento educativo',detail:equipment}];
+    if (mode !== 'BUY') items.push({title:'Socrates Aprende',detail:`Acceso a la plataforma educativa durante ${months} meses, con semanas, lecciones y actividades interactivas.`});
+    if (mode === 'BUY') {
+      items.push({title:'Implementación inicial',detail:'Orientación para poner en marcha el equipamiento en el aula.'});
+      items.push({title:'Acompañamiento inicial',detail:'Soporte durante los primeros 2 meses.'});
+    } else {
+      items.push({title:'Recursos para el aula',detail:'Actividades prácticas y materiales de apoyo para integrar la tecnología al aprendizaje.'});
+      items.push({title:'Acompañamiento y soporte',detail:`Orientación, seguimiento y soporte durante ${months} meses.`});
+    }
+    return items;
+  }
   const $ = id => document.getElementById(id);
   const money = new Intl.NumberFormat('es-GT',{style:'currency',currency:'GTQ',minimumFractionDigits:2,maximumFractionDigits:2});
   const fmt = value => money.format(value);
@@ -103,6 +120,20 @@
     $('project-title').textContent = program.project;
     $('project-description').textContent = program.description;
     $('project-tags').replaceChildren(...program.tags.map(tag => {const span=document.createElement('span');span.textContent=tag;return span;}));
+    $('included-title').textContent = `Qué incluye ${model.title}`;
+    $('included-intro').textContent = mode === 'BUY'
+      ? 'INTEGRA cubre el equipamiento y su puesta en marcha; el acceso a Socrates Aprende no forma parte de esta modalidad.'
+      : `${model.title} combina ${program.name.toLowerCase()}, aprendizaje digital en Socrates y acompañamiento durante ${quote.months} meses.`;
+    $('included-features').replaceChildren(...includedItems(mode,program,quote.months).map(item => {
+      const article=document.createElement('article'); article.className='included-feature';
+      const heading=document.createElement('h3'); heading.textContent=item.title;
+      const detail=document.createElement('p'); detail.textContent=item.detail;
+      article.append(heading,detail); return article;
+    }));
+    const platformIncluded = mode !== 'BUY';
+    $('socrates-inclusion').hidden = !platformIncluded;
+    $('platform-excluded').hidden = platformIncluded;
+    $('socrates-description').textContent = `Acceso durante ${quote.months} meses a semanas de aprendizaje, lecciones y actividades interactivas para acompañar el trabajo en clase.`;
     $('fineprint').textContent = `Estimación para ${quantity} ${quantity===1?'equipo':'equipos'} y ${studentsInput.value || 'el grupo seleccionado'} estudiantes. La inversión corresponde al modelo ${model.title}; la cuota del colegio se puede ajustar. La cotización final se confirma con GuateGeeks.`;
   }
 
