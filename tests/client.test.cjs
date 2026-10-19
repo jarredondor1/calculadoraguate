@@ -59,6 +59,34 @@ test('la vista institucional se conecta en vivo y coincide con la calculadora', 
   } finally { await page.close(); }
 });
 
+test('la propuesta Costa Sur filtra el catálogo y actualiza oferta, inversión y proyecto', async () => {
+  const page = await newPage();
+  try {
+    await page.goto(`${baseURL}/colegio-costa-sur/index.html`);
+    assert.equal(await page.locator('#program-filter option').count(), 6);
+    await page.selectOption('#level-filter', 'preprimaria');
+    assert.equal(await page.locator('#program-filter option').count(), 1);
+    await page.selectOption('#program-filter', 'TaleBot');
+    assert.match(await page.locator('#experience-title').innerText(), /Robótica para pequeños/);
+    assert.match(await page.locator('#project-title').innerText(), /Rutas para pequeños/);
+    await page.selectOption('#offer-filter', 'EVO16');
+    assert.match(await page.locator('#offer-title').innerText(), /EVOLUCIONA 16/);
+    assert.match(await page.locator('#quote-net').innerText(), /18,700/);
+    assert.match(await page.locator('#quote-total-with-vat').innerText(), /20,944/);
+    await page.selectOption('#level-filter', 'primaria');
+    assert.equal(await page.locator('#program-filter option').count(), 5);
+    await page.selectOption('#level-filter', 'secundaria');
+    assert.equal(await page.locator('#program-filter option').count(), 4);
+    await page.selectOption('#level-filter', 'primaria');
+    assert.equal(await page.inputValue('#program-filter'), 'Spike');
+    await page.selectOption('#program-filter', 'Robot Master');
+    assert.match(await page.locator('#project-title').innerText(), /Robots que se mueven/);
+    await page.selectOption('#offer-filter', 'BUY');
+    assert.match(await page.locator('#offer-title').innerText(), /INTEGRA/);
+    assert.match(await page.locator('#quote-net').innerText(), /12,250/);
+  } finally { await page.close(); }
+});
+
 test('la propuesta destaca el precio sin IVA y mantiene visible el total con IVA', async () => {
   const page = await newPage();
   try {
@@ -411,7 +439,7 @@ test('el colegio ajusta su cuota y observa el efecto en vivo', async () => {
     assert.match(await page.locator('#revenue-estimate').innerText(), /60,000\.00/);
     assert.match(await page.locator('#quote-total-with-vat').innerText(), /71,113\.28/);
     assert.match(await page.locator('body').innerText(), /Cuota sugerida por GuateGeeks/);
-    assert.match(await page.locator('body').innerText(), /Cuota mensual que evaluaría el colegio/);
+    assert.match(await page.locator('body').innerText(), /Cobro mensual por estudiante que evaluaría el colegio/);
   } finally { await page.close(); }
 });
 

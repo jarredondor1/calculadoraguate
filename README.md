@@ -35,7 +35,7 @@ La pantalla institucional oculta los costos y márgenes internos, pero **no prot
 
 ## Propuesta compartible para Colegio Costa Sur
 
-La ruta `/colegio-costa-sur/` presenta una oferta EVOLUCIONA de 8 meses para 5 equipos y 60 estudiantes. Muestra una cuota sugerida de Q 200 por estudiante al mes; el colegio puede editar la cuota y la cantidad de estudiantes para estimar sus ingresos y la diferencia bruta después de pagar la inversión cotizada con IVA. El precio de esta propuesta permanece fijo al cambiar el tamaño del grupo. La página carga únicamente los datos aprobados para esta cotización y no incluye el margen objetivo ni los costos internos de GuateGeeks.
+La ruta `/colegio-costa-sur/` es una propuesta interactiva con el catálogo de seis programas y las cuatro modalidades comerciales (INTEGRA, FLEX, EVOLUCIONA 8 y EVOLUCIONA 16). El colegio puede filtrar por nivel, elegir programa y modalidad, ajustar equipos, estudiantes y el cobro mensual que evaluaría. La inversión, el IVA, las condiciones de pago, el proyecto visual y las estimaciones de ingresos se actualizan en vivo. La página solo usa precios de venta y no incluye los costos ni márgenes internos de GuateGeeks.
 
 ## Persistencia de campos
 

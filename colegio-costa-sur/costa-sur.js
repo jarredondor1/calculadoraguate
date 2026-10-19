@@ -1,46 +1,106 @@
 (() => {
-  const quote = Object.freeze({months: 8, equipment: 5, students: 60, net: 63494, tax: 7619.28, totalWithVat: 71113.28, initial: 14222.66, installment: 7111.33, suggestedFee: 200});
-  const currency = new Intl.NumberFormat('es-GT', {style: 'currency', currency: 'GTQ', minimumFractionDigits: 2, maximumFractionDigits: 2});
-  const feeInput = document.getElementById('school-fee');
-  const studentsInput = document.getElementById('student-count');
-  const results = document.getElementById('results');
-  const message = document.getElementById('validation-message');
-
-  function calculate(monthlyFee, students) {
-    const revenue = monthlyFee * students * quote.months;
-    const grossDifference = revenue - quote.totalWithVat;
-    return {
-      revenue,
-      grossDifference,
-      differencePerStudent: grossDifference / students,
-      differencePerStudentMonth: grossDifference / (students * quote.months),
-      monthlyRevenue: monthlyFee * students
-    };
+  // Solo se incluyen precios comerciales públicos de referencia; nunca costos ni márgenes internos.
+  const programs = {
+    TaleBot: {name:'Robótica para pequeños',level:'preprimaria',levelName:'Preprimaria',buy:2000,rent:575,evo8:14700,evo16:17000,project:'Rutas para pequeños',image:'talebot-equipo.png',gif:'rutas-pequenos.gif',alt:'Robots educativos pequeños y un recorrido de programación ilustrado',status:'Equipo real · actividad ilustrativa',description:'Una idea para explorar secuencias y direcciones mediante retos de recorrido con robótica tangible.',tags:['Secuencias','Pensamiento lógico','Orientación']},
+    'Robot Master': {name:'Robótica para primaria',level:'primaria',levelName:'Primaria · 1.º a 3.º',buy:2450,rent:700,evo8:17900,evo16:20600,project:'Robots que se mueven',image:'robot-master-equipo.png',gif:'robot-master-creaciones.gif',alt:'Kit de construcción robótica y un modelo ilustrado de carro programable',status:'Equipo real · actividad ilustrativa',description:'Una idea para construir modelos y explorar movimiento, secuencias y retos de programación.',tags:['Construcción','Movimiento','Pensamiento lógico']},
+    Spike: {name:'Robótica para grandes',level:'secundaria',levelName:'4.º primaria a bachillerato',buy:8200,rent:1850,evo8:59900,evo16:68900,project:'Robot Cartógrafo',image:'robot-cartografo.png',gif:'robot-cartografo-recorrido.gif',alt:'Robot cartógrafo construido para explorar rutas en una ciudad',status:'Programa disponible',description:'Los estudiantes construyen y programan un robot para explorar recorridos, medir distancias y representar una ciudad.',tags:['Programación','Medición','Resolución de problemas']},
+    Snap: {name:'Electrónica',level:'transversal',levelName:'Primaria y secundaria',buy:1750,rent:550,evo8:13300,evo16:15300,project:'Circuitos en Acción',image:'circuitos.png',gif:'circuitos-creaciones.gif',alt:'Estudiantes explorando circuitos y una secuencia para encender una luz',status:'Referencia de catálogo',description:'Una propuesta para explorar conexiones, energía y relaciones de causa y efecto con circuitos.',tags:['Electrónica','Experimentación','Causa y efecto']},
+    Drones: {name:'Drones educativos',level:'transversal',levelName:'Primaria y secundaria',buy:4150,rent:1000,evo8:30500,evo16:35100,project:'Aventura de vuelo',image:'drones-educativos-generado.png',gif:'drones-recorrido.gif',alt:'Dron educativo y ruta ilustrada para practicar un recorrido de vuelo',status:'Imagen ilustrativa · actividad propuesta',description:'Una propuesta para explorar trayectorias, orientación y resolución de retos mediante una experiencia de vuelo educativo.',tags:['Orientación espacial','Secuencias','Resolución de retos']},
+    Meta: {name:'Experiencias inmersivas',level:'transversal',levelName:'Tecnología transversal',buy:5550,rent:1750,evo8:44400,evo16:51100,project:'Expediciones VR',image:'realidad-virtual.png',gif:'exploracion-inmersiva.gif',alt:'Estudiantes explorando realidad virtual y una escena educativa del espacio',status:'Referencia de catálogo',description:'Una propuesta de exploraciones inmersivas con experiencias guiadas y reflexión aplicada a ciencia y tecnología.',tags:['Exploración','Ciencia','Reflexión']}
+  };
+  const modes = {
+    BUY: {title:'INTEGRA',months:8,description:'Adquisición del equipamiento con propiedad desde el inicio e implementación inicial.'},
+    RENT: {title:'FLEX',months:2,description:'Acceso al equipamiento mediante renta con acompañamiento durante el período seleccionado.'},
+    EVO8: {title:'EVOLUCIONA 8',months:8,description:'Un ciclo de aprendizaje con acompañamiento y equipamiento que queda en propiedad de la institución al completar el contrato.'},
+    EVO16: {title:'EVOLUCIONA 16',months:16,description:'Dos ciclos de aprendizaje con acompañamiento y equipamiento que queda en propiedad de la institución al completar el contrato.'}
+  };
+  const $ = id => document.getElementById(id);
+  const money = new Intl.NumberFormat('es-GT',{style:'currency',currency:'GTQ',minimumFractionDigits:2,maximumFractionDigits:2});
+  const fmt = value => money.format(value);
+  const levelFilter = $('level-filter'), programFilter = $('program-filter'), modeFilter = $('offer-filter');
+  const qtyInput = $('equipment-count'), feeInput = $('school-fee'), studentsInput = $('student-count');
+  function eligiblePrograms() {
+    const level = levelFilter.value;
+    return Object.entries(programs).filter(([,p]) => level === 'all' || p.level === level || (['primaria','secundaria'].includes(level) && p.level === 'transversal') || (level === 'primaria' && p.level === 'secundaria'));
   }
-
+  function refreshPrograms() {
+    const previous = programFilter.value;
+    const eligible = eligiblePrograms();
+    programFilter.replaceChildren();
+    eligible.forEach(([id,p]) => programFilter.add(new Option(p.name,id)));
+    programFilter.value = eligible.some(([id]) => id === previous) ? previous : (eligible[0]?.[0] || 'all');
+  }
+  function selectedProgramId() { return programFilter.value || eligiblePrograms()[0]?.[0] || 'Spike'; }
+  function totals(program, mode, quantity) {
+    let net, months = modes[mode].months;
+    if (mode === 'BUY') net = program.buy * quantity;
+    if (mode === 'RENT') {
+      const periods = Number($('rental-period')?.value || 1);
+      const discount = {1:0,2:.02,3:.04,4:.05}[periods];
+      net = program.rent * quantity * periods * (1 - discount);
+      months = periods * 2;
+    }
+    if (mode === 'EVO8') net = program.evo8 * quantity / 5 * 1.06;
+    if (mode === 'EVO16') net = program.evo16 * quantity / 5 * 1.10;
+    const tax = net * .12, gross = net + tax;
+    const initialRate = mode === 'EVO8' || mode === 'EVO16' ? .2 : mode === 'BUY' ? 1 : 0;
+    const initial = gross * initialRate;
+    return {net,tax,gross,months,initial,monthly:mode === 'EVO8' || mode === 'EVO16' ? (gross-initial)/months : mode === 'RENT' ? gross/months : 0,initialRate};
+  }
   function render() {
-    const monthlyFee = Number(feeInput.value);
-    const students = Number(studentsInput.value);
-    const feeValid = feeInput.value.trim() !== '' && Number.isFinite(monthlyFee) && monthlyFee >= 1 && monthlyFee <= 10000;
-    const studentsValid = studentsInput.value.trim() !== '' && Number.isSafeInteger(students) && students >= 1 && students <= 500;
-    const valid = feeValid && studentsValid;
-
-    feeInput.setAttribute('aria-invalid', String(!feeValid));
-    studentsInput.setAttribute('aria-invalid', String(!studentsValid));
-    results.hidden = !valid;
-    message.hidden = valid;
-    if (!valid) return;
-
-    const estimate = calculate(monthlyFee, students);
-    document.getElementById('revenue-estimate').textContent = currency.format(estimate.revenue);
-    document.getElementById('revenue-breakdown').textContent = `${currency.format(estimate.monthlyRevenue)} al mes · ${students} estudiantes`;
-    document.getElementById('gross-difference').textContent = currency.format(estimate.grossDifference);
-    document.getElementById('difference-per-student').textContent = currency.format(estimate.differencePerStudent);
-    document.getElementById('difference-per-student-month').textContent = currency.format(estimate.differencePerStudentMonth);
+    const programId = selectedProgramId(), program = programs[programId], mode = modeFilter.value, model = modes[mode];
+    const quantity = Math.max(1,Math.min(100,Math.floor(Number(qtyInput.value) || 1)));
+    if (qtyInput.value !== String(quantity)) qtyInput.value = String(quantity);
+    const quote = totals(program,mode,quantity), students = Number(studentsInput.value), fee = Number(feeInput.value);
+    $('offer-title').textContent = model.title;
+    $('offer-description').textContent = model.description;
+    $('term-badge').textContent = `${quote.months} meses`;
+    $('quote-net').textContent = fmt(quote.net);
+    $('quote-total-with-vat').textContent = fmt(quote.gross);
+    $('tax-note').textContent = `Incluye IVA de ${fmt(quote.tax)}`;
+    const isEvol = mode === 'EVO8' || mode === 'EVO16';
+    const isBuy = mode === 'BUY';
+    $('initial-label').textContent = isEvol ? 'Pago inicial · 20 %' : isBuy ? 'Pago inicial · 100 %' : 'Pago inicial';
+    $('initial-payment').textContent = fmt(quote.initial);
+    $('installment-label').textContent = isEvol ? `${quote.months} cuotas mensuales aprox.` : mode === 'RENT' ? `Renta mensual · ${quote.months} meses` : 'Pago único';
+    $('monthly-payment').textContent = isBuy ? '—' : fmt(quote.monthly);
+    $('ownership-note').textContent = isBuy ? 'El equipamiento queda en propiedad del colegio desde la compra.' : mode === 'RENT' ? 'El equipamiento se utiliza durante la renta; las condiciones finales se confirman con GuateGeeks.' : 'El equipamiento queda en propiedad del colegio al completar el contrato.';
+    $('rounding-note').hidden = !isEvol;
+    $('rental-field').hidden = mode !== 'RENT';
+    $('experience-title').textContent = program.name;
+    $('catalog-status').textContent = `${quantity < 5 ? 'Escenario informativo · mínimo comercial 5 equipos. ' : ''}${program.name} · ${program.levelName} · ${quantity} ${quantity === 1 ? 'equipo' : 'equipos'} · ${model.title}`;
+    $('suggested-fee').textContent = fmt(Math.ceil((quote.gross / Math.max(1,students) / quote.months / .75) / 5) * 5);
+    const validStudents = Number.isSafeInteger(students) && students >= 1 && students <= 500;
+    const validFee = Number.isFinite(fee) && fee >= 1 && fee <= 10000;
+    $('validation-message').hidden = validStudents && validFee;
+    $('results').hidden = !(validStudents && validFee);
+    studentsInput.setAttribute('aria-invalid',String(!validStudents)); feeInput.setAttribute('aria-invalid',String(!validFee));
+    if (validStudents && validFee) {
+      const revenue = fee * students * quote.months, difference = revenue - quote.gross;
+      $('results-period').textContent = `${quote.months} meses`;
+      $('revenue-estimate').textContent = fmt(revenue);
+      $('revenue-breakdown').textContent = `${fmt(fee*students)} al mes · ${students} estudiantes`;
+      $('gross-difference').textContent = fmt(difference);
+      $('difference-per-student').textContent = fmt(difference/students);
+      $('difference-per-student-month').textContent = fmt(difference/students/quote.months);
+      $('student-total-label').textContent = `Por estudiante · durante ${quote.months} meses`;
+    }
+    const assetRoot = '../assets/projects/';
+    $('project-image').src = assetRoot + program.image;
+    $('project-image').alt = program.alt;
+    $('project-animation').srcset = assetRoot + 'animations/' + program.gif;
+    $('project-status').textContent = program.status;
+    $('project-title').textContent = program.project;
+    $('project-description').textContent = program.description;
+    $('project-tags').replaceChildren(...program.tags.map(tag => {const span=document.createElement('span');span.textContent=tag;return span;}));
+    $('fineprint').textContent = `Estimación para ${quantity} ${quantity===1?'equipo':'equipos'} y ${studentsInput.value || 'el grupo seleccionado'} estudiantes. La inversión corresponde al modelo ${model.title}; la cuota del colegio se puede ajustar. La cotización final se confirma con GuateGeeks.`;
   }
 
-  feeInput.addEventListener('input', render);
-  studentsInput.addEventListener('input', render);
-  document.getElementById('scenario-form').addEventListener('submit', event => event.preventDefault());
+  Object.entries(programs).forEach(([id,p]) => programFilter.add(new Option(p.name,id)));
+  programFilter.value = 'Spike';
+  levelFilter.addEventListener('change',() => {refreshPrograms();render();});
+  [programFilter,modeFilter,qtyInput,feeInput,studentsInput].forEach(el => el.addEventListener('input',render));
+  [programFilter,modeFilter].forEach(el => el.addEventListener('change',render));
+  $('rental-period').addEventListener('change',render);
   render();
 })();
