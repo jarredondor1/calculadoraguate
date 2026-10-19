@@ -33,6 +33,10 @@ La sección del programa presenta **Socrates Aprende** mediante un recorrido ani
 
 La pantalla institucional oculta los costos y márgenes internos, pero **no protege su confidencialidad**: se encuentran en el HTML y JavaScript publicados por GitHub Pages. Para protegerlos es necesario restringir o separar el simulador interno y sus datos mediante una solución de acceso adecuada.
 
+## Propuesta compartible para Colegio Costa Sur
+
+La ruta `/colegio-costa-sur/` presenta una oferta EVOLUCIONA de 8 meses para 5 equipos y 60 estudiantes. Muestra una cuota sugerida de Q 200 por estudiante al mes; el colegio puede editar la cuota y la cantidad de estudiantes para estimar sus ingresos y la diferencia bruta después de pagar la inversión cotizada con IVA. El precio de esta propuesta permanece fijo al cambiar el tamaño del grupo. La página carga únicamente los datos aprobados para esta cotización y no incluye el margen objetivo ni los costos internos de GuateGeeks.
+
 ## Persistencia de campos
 
 Los valores seleccionados se guardan localmente en el navegador mediante `localStorage`. Al recargar la página se recupera el último escenario utilizado en ese dispositivo y navegador.

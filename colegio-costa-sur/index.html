@@ -1,0 +1,119 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#45335f">
+  <meta name="description" content="Explora la propuesta EVOLUCIONA de GuateGeeks para Colegio Costa Sur y prueba distintos cobros por estudiante.">
+  <title>Propuesta EVOLUCIONA | Colegio Costa Sur · GuateGeeks</title>
+  <link rel="stylesheet" href="costa-sur.css">
+  <script src="costa-sur.js" defer></script>
+</head>
+<body>
+  <header class="topbar">
+    <a class="brand" href="#inicio" aria-label="GuateGeeks, propuesta para Colegio Costa Sur">
+      <span class="brand-mark" aria-hidden="true">G</span>
+      <span>Guate<span>Geeks</span></span>
+    </a>
+    <div class="proposal-label"><span aria-hidden="true"></span> Propuesta para Colegio Costa Sur</div>
+  </header>
+
+  <main id="inicio" class="page-shell">
+    <section class="intro" aria-labelledby="page-title">
+      <div class="intro-copy">
+        <p class="eyebrow">TECNOLOGÍA + APRENDIZAJE</p>
+        <h1 id="page-title">Una experiencia para <em>aprender creando.</em></h1>
+        <p class="intro-lead">Conoce la propuesta EVOLUCIONA para Colegio Costa Sur y explora cómo una cuota por estudiante puede ayudar a llevarla al aula.</p>
+        <div class="intro-tags" aria-label="Resumen de la propuesta">
+          <span>5 equipos</span><span>60 estudiantes</span><span>8 meses</span>
+        </div>
+      </div>
+      <div class="intro-orbit" aria-hidden="true"><span>GG</span><i></i><b></b></div>
+    </section>
+
+    <section class="offer-card" id="offer" aria-labelledby="offer-title">
+      <div class="offer-heading">
+        <div>
+          <p class="eyebrow">PROPUESTA EDUCATIVA</p>
+          <h2 id="offer-title">EVOLUCIONA</h2>
+        </div>
+        <span class="term-badge">8 meses</span>
+      </div>
+      <p class="offer-description">Un ciclo de aprendizaje con acompañamiento y equipamiento que queda en propiedad de la institución al completar el contrato.</p>
+      <div class="offer-details">
+        <div class="investment-block">
+          <span class="metric-label">Inversión del programa · sin IVA</span>
+          <strong class="investment-total" id="quote-net">Q 63,494.00</strong>
+          <span class="tax-total">Total con IVA <strong id="quote-total-with-vat">Q 71,113.28</strong></span>
+          <span class="tax-note">Incluye IVA de Q 7,619.28</span>
+        </div>
+        <div class="payment-block" aria-label="Condiciones de pago">
+          <div><span>Pago inicial · 20 %</span><strong>Q 14,222.66</strong></div>
+          <div><span>8 cuotas mensuales aprox.</span><strong>Q 7,111.33</strong></div>
+          <small class="payment-rounding-note">La última cuota puede ajustarse por redondeo.</small>
+          <p>El equipo queda en propiedad del colegio al completar el contrato.</p>
+        </div>
+      </div>
+    </section>
+
+    <section class="explorer" aria-labelledby="explorer-title">
+      <div class="section-heading">
+        <div><p class="eyebrow">PRUÉBALO</p><h2 id="explorer-title">Explora una cuota para tus estudiantes</h2></div>
+        <p>Ajusta los valores para visualizar el escenario del colegio. Los resultados cambian al instante.</p>
+      </div>
+
+      <div class="explorer-grid">
+        <form class="scenario-card" id="scenario-form" novalidate>
+          <div class="scenario-card-heading"><h3>Escenario del colegio</h3><span class="live-badge"><i></i> EN VIVO</span></div>
+          <div class="suggested-card">
+            <span>Cuota sugerida por GuateGeeks</span>
+            <strong id="suggested-fee">Q 200.00</strong>
+            <small>Por estudiante al mes</small>
+          </div>
+          <div class="field">
+            <label for="school-fee">Cuota mensual que evaluaría el colegio</label>
+            <div class="currency-input"><span aria-hidden="true">Q</span><input id="school-fee" name="schoolFee" type="number" inputmode="decimal" min="1" max="10000" step="0.01" value="200" aria-describedby="school-fee-help"></div>
+            <small id="school-fee-help">Puedes probar un valor distinto a la sugerencia.</small>
+          </div>
+          <div class="field">
+            <label for="student-count">Estudiantes participantes</label>
+            <input id="student-count" name="students" type="number" inputmode="numeric" min="1" max="500" step="1" value="60" aria-describedby="student-count-help">
+            <small id="student-count-help">Prueba distintos tamaños de grupo; la inversión cotizada se mantiene fija.</small>
+          </div>
+          <p id="validation-message" class="validation-message" role="alert" hidden>Ingresa una cuota mayor a Q 0 y una cantidad de estudiantes entre 1 y 500.</p>
+        </form>
+
+        <section id="results" class="results-card" aria-labelledby="results-title" aria-live="polite">
+          <div class="results-heading"><div><p class="eyebrow">ESTIMACIÓN DEL COLEGIO</p><h3 id="results-title">Lo que podría recaudar</h3></div><span class="results-period">8 meses</span></div>
+          <div class="results-primary">
+            <div class="result-tile"><span>Ingreso estimado del programa</span><strong id="revenue-estimate">Q 96,000.00</strong><small id="revenue-breakdown">Q 1,000.00 al mes · 60 estudiantes</small></div>
+            <div class="result-tile result-highlight"><span>Diferencia bruta estimada después de pagar a GuateGeeks</span><strong id="gross-difference">Q 24,886.72</strong><small>Antes de los gastos propios del colegio</small></div>
+          </div>
+          <div class="student-results">
+            <div><span>Por estudiante · durante 8 meses</span><strong id="difference-per-student">Q 414.78</strong></div>
+            <div><span>Por estudiante · al mes</span><strong id="difference-per-student-month">Q 51.85</strong></div>
+          </div>
+          <p class="disclosure">Es una estimación antes de gastos, cobros e impuestos propios del colegio; no representa utilidad neta.</p>
+        </section>
+      </div>
+      <p class="fineprint">La inversión y las condiciones corresponden a esta propuesta para 5 equipos. La cuota mensual es un escenario que el colegio puede ajustar; la cotización final se confirma con GuateGeeks.</p>
+    </section>
+
+    <section class="experience" aria-labelledby="experience-title">
+      <div class="section-heading">
+        <div><p class="eyebrow">APRENDER HACIENDO</p><h2 id="experience-title">Robótica para grandes</h2></div>
+        <p>Una idea para imaginar lo que los estudiantes pueden explorar y crear en clase.</p>
+      </div>
+      <div class="project-card">
+        <picture class="project-visual">
+          <source srcset="../assets/projects/animations/robot-cartografo-recorrido.gif" type="image/gif" media="(prefers-reduced-motion: no-preference)">
+          <img id="project-image" src="../assets/projects/robot-cartografo.png" alt="Robot cartógrafo educativo construido para explorar y representar rutas en una ciudad" width="960" height="540" loading="lazy" decoding="async">
+        </picture>
+        <div class="project-copy"><span class="project-status">IDEA DE PROYECTO</span><h3>Robot Cartógrafo</h3><p>Los estudiantes construyen y programan un robot para explorar recorridos, medir distancias y representar una ciudad.</p><div class="learning-tags"><span>Programación</span><span>Medición</span><span>Resolución de problemas</span></div></div>
+      </div>
+    </section>
+
+    <footer class="page-footer"><span class="footer-brand">GuateGeeks</span><span>Propuesta educativa para Colegio Costa Sur</span></footer>
+  </main>
+</body>
+</html>

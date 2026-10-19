@@ -381,3 +381,76 @@ test('opciones guardadas que ya no existen no rompen el simulador', async () => 
     assert.equal(await page.locator('#client-offers .client-offer').count(), 4);
   } finally { await page.close(); }
 });
+
+test('la propuesta Costa Sur comunica la inversión y el escenario sugerido', async () => {
+  const page = await newPage();
+  try {
+    await page.goto(`${baseURL}/colegio-costa-sur/index.html`);
+    assert.match(await page.title(), /Colegio Costa Sur/);
+    const offer = await page.locator('#offer').innerText();
+    assert.match(offer, /EVOLUCIONA/);
+    assert.equal((offer.match(/8 meses/g) || []).length, 1);
+    assert.match(await page.locator('#quote-net').innerText(), /63,494\.00/);
+    assert.match(await page.locator('#quote-total-with-vat').innerText(), /71,113\.28/);
+    assert.match(await page.locator('#suggested-fee').innerText(), /200/);
+    assert.match(await page.locator('#revenue-estimate').innerText(), /96,000\.00/);
+    assert.match(await page.locator('#gross-difference').innerText(), /24,886\.72/);
+    assert.match(await page.locator('#difference-per-student').innerText(), /414\.78/);
+    assert.match(await page.locator('#difference-per-student-month').innerText(), /51\.85/);
+  } finally { await page.close(); }
+});
+
+test('el colegio ajusta su cuota y observa el efecto en vivo', async () => {
+  const page = await newPage();
+  try {
+    await page.goto(`${baseURL}/colegio-costa-sur/index.html`);
+    await page.fill('#school-fee', '250');
+    assert.match(await page.locator('#revenue-estimate').innerText(), /120,000\.00/);
+    assert.match(await page.locator('#gross-difference').innerText(), /48,886\.72/);
+    await page.fill('#student-count', '30');
+    assert.match(await page.locator('#revenue-estimate').innerText(), /60,000\.00/);
+    assert.match(await page.locator('#quote-total-with-vat').innerText(), /71,113\.28/);
+    assert.match(await page.locator('body').innerText(), /Cuota sugerida por GuateGeeks/);
+    assert.match(await page.locator('body').innerText(), /Cuota mensual que evaluaría el colegio/);
+  } finally { await page.close(); }
+});
+
+test('la propuesta Costa Sur valida entradas y no muestra las cuentas internas', async () => {
+  const page = await newPage();
+  try {
+    await page.goto(`${baseURL}/colegio-costa-sur/index.html`);
+    const script = await page.evaluate(() => fetch('costa-sur.js').then(response => response.text()));
+    for (const phrase of ['costo directo', 'margen objetivo', 'rentabilidad GG', '+6%', '+10%']) {
+      assert.equal((await page.locator('body').innerText()).toLowerCase().includes(phrase.toLowerCase()), false);
+      assert.equal(script.toLowerCase().includes(phrase.toLowerCase()), false);
+    }
+    await page.fill('#student-count', '0');
+    assert.equal(await page.locator('#results').isVisible(), false);
+    assert.equal(await page.locator('#validation-message[role="alert"]').isVisible(), true);
+    await page.fill('#student-count', '60');
+    await page.fill('#school-fee', '-1');
+    assert.equal(await page.locator('#results').isVisible(), false);
+    assert.equal(await page.locator('#validation-message[role="alert"]').isVisible(), true);
+  } finally { await page.close(); }
+});
+
+test('la propuesta Costa Sur se adapta a escritorio y móvil sin desbordamiento', async () => {
+  const page = await newPage();
+  try {
+    await page.goto(`${baseURL}/colegio-costa-sur/index.html`);
+    for (const viewport of [{width: 1280, height: 800}, {width: 375, height: 812}]) {
+      await page.setViewportSize(viewport);
+      assert.equal(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth), true);
+      assert.equal(await page.locator('#school-fee').isVisible(), true);
+      assert.equal(await page.locator('#student-count').isVisible(), true);
+      assert.equal(await page.locator('#gross-difference').isVisible(), true);
+    }
+    const image = page.locator('#project-image');
+    await image.scrollIntoViewIfNeeded();
+    await page.waitForFunction(() => {
+      const project = document.querySelector('#project-image');
+      return project && project.complete && project.naturalWidth > 0;
+    });
+    assert.ok(await image.getAttribute('alt'));
+  } finally { await page.close(); }
+});
