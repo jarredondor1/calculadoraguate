@@ -94,6 +94,21 @@ button, input { font: inherit; }
 .socrates-inclusion img { display: block; width: 100%; max-height: 250px; object-fit: cover; border: 1px solid rgba(255,255,255,.25); border-radius: 12px; background: #fff; }
 .platform-excluded { margin: 14px 0 0; padding: 12px 15px; border-radius: 11px; background: #f8f5fb; color: var(--gg-muted); font-size: 14px; font-weight: 650; }
 .platform-excluded[hidden] { display: none; }
+.integra-details { margin-top: 22px; padding: clamp(22px, 3.6vw, 38px); border: 1px solid var(--gg-border); border-top: 4px solid var(--gg-coral); border-radius: 20px; background: #fff; box-shadow: 0 10px 28px rgba(48,43,61,.045); }
+.integra-details[hidden] { display: none; }
+.integra-training { display: flex; align-items: center; justify-content: space-between; gap: 22px; padding: clamp(18px, 3vw, 26px); border: 1px solid #ded4ea; border-radius: 16px; background: var(--gg-soft); }
+.integra-training h3 { margin: 12px 0 5px; color: var(--gg-plum-dark); font-size: 20px; line-height: 1.25; }
+.integra-training p { margin: 0; color: var(--gg-muted); font-size: 14px; }
+.integra-training > strong { flex: 0 0 auto; color: var(--gg-plum-dark); font-size: 18px; text-align: right; }
+.integra-training .included-badge { background: #eee7f4; color: var(--gg-plum-dark); }
+.integra-comparison { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap: 14px; margin-top: 14px; }
+.integra-point { min-width: 0; padding: clamp(18px, 2.5vw, 24px); border: 1px solid var(--gg-border); border-radius: 16px; background: #fff; }
+.integra-point h3 { margin: 0 0 12px; color: var(--gg-plum-dark); font-size: 17px; }
+.integra-point ul { display: grid; gap: 9px; margin: 0; padding-left: 20px; color: var(--gg-muted); font-size: 14px; }
+.integra-pros { background: #f2faf7; }
+.integra-pros li::marker { color: #26806e; }
+.integra-considerations { background: #fffaf6; }
+.integra-considerations li::marker { color: var(--gg-coral-dark); }
 .offer-heading, .section-heading, .scenario-card-heading, .results-heading { display: flex; align-items: flex-start; justify-content: space-between; gap: 20px; }
 .offer-heading h2, .section-heading h2 { margin: 0; color: var(--gg-plum-dark); font-size: clamp(25px, 3vw, 34px); line-height: 1.15; letter-spacing: -.035em; }
 .term-badge { flex: 0 0 auto; padding: 8px 13px; border-radius: 999px; background: #f1ecf6; color: var(--gg-plum-dark); font-size: 14px; font-weight: 750; }
@@ -183,6 +198,10 @@ button, input { font: inherit; }
 @media (max-width: 650px) {
   .catalog-explorer { padding: 19px; border-radius: 17px; }
   .included-section { padding: 19px; border-radius: 17px; }
+  .integra-details { padding: 19px; border-radius: 17px; }
+  .integra-training { align-items: flex-start; flex-direction: column; gap: 12px; }
+  .integra-training > strong { text-align: left; }
+  .integra-comparison { grid-template-columns: 1fr; }
   .catalog-filters { grid-template-columns: 1fr; gap: 11px; }
   .included-features { grid-template-columns: 1fr; }
   .topbar { min-height: 68px; flex-wrap: wrap; padding: 12px 20px; }

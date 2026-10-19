@@ -94,18 +94,12 @@ test('el precio por equipo, la sugerencia y la estimación se recalculan con el 
     await page.selectOption('#program-filter', 'TaleBot');
     await page.selectOption('#offer-filter', 'BUY');
     await page.fill('#equipment-count', '1');
-    await page.fill('#student-count', '50');
-    await page.uncheck('#use-suggested-fee');
-    await page.fill('#school-fee', '100');
+    assert.equal(await page.locator('#explorer').isVisible(), false);
     assert.match(await page.locator('#quote-net').innerText(), /2,000/);
     assert.match(await page.locator('#quote-basis').innerText(), /1 equipo × Q 2,000\.00 por equipo/);
-    assert.match(await page.locator('#suggested-fee').innerText(), /10/);
     await page.fill('#equipment-count', '3');
     assert.match(await page.locator('#quote-net').innerText(), /6,000/);
     assert.match(await page.locator('#quote-basis').innerText(), /3 equipos × Q 2,000\.00 por equipo/);
-    assert.match(await page.locator('#suggested-fee').innerText(), /25/);
-    assert.match(await page.locator('#revenue-estimate').innerText(), /40,000/);
-    assert.match(await page.locator('#gross-difference').innerText(), /33,280/);
   } finally { await page.close(); }
 });
 
@@ -146,6 +140,29 @@ test('los beneficios cambian por modalidad y Socrates solo se incluye en FLEX y 
     assert.equal(await page.locator('#socrates-inclusion').isVisible(), false);
     assert.match(await page.locator('#platform-excluded').innerText(), /no está incluida en INTEGRA/i);
     assert.match(await page.locator('#included-features').innerText(), /implementación inicial/i);
+  } finally { await page.close(); }
+});
+
+test('INTEGRA presenta compra y capacitación aparte sin simulación de cobro estudiantil', async () => {
+  const page = await newPage();
+  try {
+    await page.goto(`${baseURL}/colegio-costa-sur/index.html`);
+    await page.selectOption('#offer-filter', 'BUY');
+    assert.equal(await page.locator('#explorer').isVisible(), false);
+    assert.equal(await page.locator('#integra-details').isVisible(), true);
+    assert.match(await page.locator('#integra-training').innerText(), /se cotiza por separado/i);
+    assert.match(await page.locator('#integra-pros').innerText(), /propiedad del equipo desde el inicio/i);
+    assert.match(await page.locator('#integra-considerations').innerText(), /Socrates Aprende no está incluida/i);
+    await page.setViewportSize({ width: 390, height: 844 });
+    const integraLayout = await page.locator('#integra-details').evaluate(el => ({
+      overflows: el.scrollWidth > el.clientWidth,
+      columns: getComputedStyle(el.querySelector('.integra-comparison')).gridTemplateColumns
+    }));
+    assert.equal(integraLayout.overflows, false);
+    assert.equal(integraLayout.columns.split(' ').length, 1);
+    await page.selectOption('#offer-filter', 'EVO8');
+    assert.equal(await page.locator('#explorer').isVisible(), true);
+    assert.equal(await page.locator('#integra-details').isVisible(), false);
   } finally { await page.close(); }
 });
 

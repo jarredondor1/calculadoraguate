@@ -86,6 +86,8 @@
     else $('quote-basis').textContent = `${model.title} para ${quantity} ${quantity === 1 ? 'equipo' : 'equipos'} · ${quote.months} meses`;
     const isEvol = mode === 'EVO8' || mode === 'EVO16';
     const isBuy = mode === 'BUY';
+    $('explorer').hidden = isBuy;
+    $('integra-details').hidden = !isBuy;
     $('initial-label').textContent = isEvol || mode === 'RENT' ? 'Pago inicial · 20 %' : 'Pago inicial · 100 %';
     $('initial-payment').textContent = fmt(quote.initial);
     $('installment-label').textContent = isEvol ? `${quote.months} cuotas mensuales aprox.` : mode === 'RENT' ? `Renta mensual · ${quote.months} meses` : 'Pago único';
@@ -134,7 +136,9 @@
     $('socrates-inclusion').hidden = !platformIncluded;
     $('platform-excluded').hidden = platformIncluded;
     $('socrates-description').textContent = `Acceso durante ${quote.months} meses a semanas de aprendizaje, lecciones y actividades interactivas para acompañar el trabajo en clase.`;
-    $('fineprint').textContent = `Estimación para ${quantity} ${quantity===1?'equipo':'equipos'} y ${studentsInput.value || 'el grupo seleccionado'} estudiantes. La inversión corresponde al modelo ${model.title}; la cuota del colegio se puede ajustar. La cotización final se confirma con GuateGeeks.`;
+    $('fineprint').textContent = isBuy
+      ? `Precio de INTEGRA para ${quantity} ${quantity===1?'equipo':'equipos'}. La capacitación docente se cotiza por separado; el precio final se confirma con GuateGeeks.`
+      : `Estimación para ${quantity} ${quantity===1?'equipo':'equipos'} y ${studentsInput.value || 'el grupo seleccionado'} estudiantes. La inversión corresponde al modelo ${model.title}; la cuota del colegio se puede ajustar. La cotización final se confirma con GuateGeeks.`;
   }
 
   Object.entries(programs).forEach(([id,p]) => programFilter.add(new Option(p.name,id)));
