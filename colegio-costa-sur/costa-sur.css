@@ -98,8 +98,6 @@ button, input { font: inherit; }
 .socrates-inclusion a { display: inline-flex; align-items: center; gap: 8px; padding: 10px 14px; border-radius: 10px; background: #fff; color: var(--gg-plum-dark); font-weight: 750; text-decoration: none; }
 .socrates-inclusion a:focus-visible { outline: 3px solid #ffd0b6; outline-offset: 3px; }
 .socrates-inclusion img { display: block; width: 100%; max-height: 250px; object-fit: cover; border: 1px solid rgba(255,255,255,.25); border-radius: 12px; background: #fff; }
-.platform-excluded { margin: 14px 0 0; padding: 12px 15px; border-radius: 11px; background: #f8f5fb; color: var(--gg-muted); font-size: 14px; font-weight: 650; }
-.platform-excluded[hidden] { display: none; }
 .integra-details { margin-top: 22px; padding: clamp(22px, 3.6vw, 38px); border: 1px solid var(--gg-border); border-top: 4px solid var(--gg-coral); border-radius: 20px; background: #fff; box-shadow: 0 10px 28px rgba(48,43,61,.045); }
 .integra-details[hidden] { display: none; }
 .integra-training { display: flex; align-items: center; justify-content: space-between; gap: 22px; padding: clamp(18px, 3vw, 26px); border: 1px solid #ded4ea; border-radius: 16px; background: var(--gg-soft); }
