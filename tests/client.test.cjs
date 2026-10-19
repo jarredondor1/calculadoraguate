@@ -91,6 +91,9 @@ test('la propuesta Costa Sur filtra el catálogo y actualiza oferta, inversión 
     assert.match(summary, /3 por equipo/);
     assert.match(summary, /1 equipo/);
     assert.match(summary, /INTEGRA/);
+    assert.equal(await page.locator('.catalog-summary svg').count(), 5);
+    assert.equal(await page.locator('.catalog-summary svg[aria-hidden="true"]').count(), 5);
+    assert.equal(await page.locator('#catalog-minimum-note svg[aria-hidden="true"]').count(), 1);
     assert.doesNotMatch(summary, /mínimo comercial/);
     assert.equal(await page.locator('#catalog-minimum-note').isVisible(), true);
     await page.fill('#equipment-count', '5');

@@ -78,8 +78,10 @@ button, input { font: inherit; }
 .catalog-filters select:focus-visible, .catalog-filters input:focus-visible { outline: 3px solid #2784a1; outline-offset: 2px; border-color: #2784a1; }
 .catalog-status { margin: 14px 0 0; color: var(--gg-muted); font-size: 12px; line-height: 1.35; }
 .catalog-summary { display: flex; flex-wrap: wrap; align-items: center; gap: 7px; }
-.catalog-summary > strong, .catalog-summary > span, .catalog-minimum-note { display: inline-flex; align-items: center; min-height: 30px; padding: 6px 10px; border: 1px solid var(--gg-border); border-radius: 999px; background: #fbfafd; font-weight: 700; }
+.catalog-summary > strong, .catalog-summary > span, .catalog-minimum-note { display: inline-flex; align-items: center; gap: 7px; min-height: 34px; padding: 6px 10px; border: 1px solid var(--gg-border); border-radius: 999px; background: #fbfafd; font-weight: 700; }
 .catalog-summary > strong { border-color: #ded4ea; background: #f3eef8; color: var(--gg-plum-dark); font-size: 13px; }
+.catalog-summary > span { color: var(--gg-muted); }
+.catalog-summary svg, .catalog-minimum-note svg { width: 15px; height: 15px; flex: 0 0 15px; fill: none; stroke: currentColor; stroke-width: 1.6; stroke-linecap: round; stroke-linejoin: round; }
 .catalog-minimum-note { margin-top: 8px; border-color: #f1d7c9; background: #fff5ef; color: var(--gg-coral-dark); }
 .catalog-status [hidden] { display: none; }
 .offer-card { margin-top: 22px; padding: clamp(22px, 3.6vw, 38px); border-top: 4px solid var(--gg-coral); }
