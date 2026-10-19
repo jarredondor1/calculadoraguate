@@ -271,6 +271,38 @@ test('las categorías de robótica usan nombres por edad y conservan los precios
   } finally { await page.close(); }
 });
 
+test('la capacidad recomendada por equipo depende de la tecnología y del tamaño del grupo', async () => {
+  const page = await newPage();
+  try {
+    await page.goto(`${baseURL}/colegio-costa-sur/index.html`);
+    await page.fill('#student-count', '60');
+    const cases = [
+      ['TaleBot', 2, 30], ['Robot Master', 3, 20], ['Spike', 3, 20],
+      ['Snap', 3, 20], ['Drones', 2, 30], ['Meta', 3, 20]
+    ];
+    for (const [program, studentsPerTeam, recommendedTeams] of cases) {
+      await page.selectOption('#program-filter', program);
+      const guidance = await page.locator('#student-count-help').innerText();
+      assert.match(guidance, new RegExp(`${studentsPerTeam} estudiantes por equipo`), program);
+      assert.match(guidance, new RegExp(`${recommendedTeams} equipos`), program);
+    }
+    await page.selectOption('#level-filter', 'primaria');
+    assert.ok(await page.locator('#program-filter option[value="Spike"]').count(), 'Spike debe estar disponible para primaria alta');
+    await page.selectOption('#program-filter', 'Spike');
+    assert.match(await page.locator('#catalog-status').innerText(), /4\.º a 6\.º primaria/i);
+    const brand = await page.locator('.brand img').evaluate(img => ({alt:img.alt,loaded:img.complete && img.naturalWidth > 0}));
+    assert.equal(brand.alt, 'GuateGeeks');
+    assert.equal(brand.loaded, true);
+    await page.goto(baseURL);
+    for (const [program, studentsPerTeam] of [['TaleBot', 2], ['Robot Master', 3], ['Spike', 3], ['Snap', 3], ['Drones', 2], ['Meta', 3]]) {
+      await page.selectOption('#tech', program);
+      assert.match(await page.locator('#capacity').innerText(), new RegExp(`${studentsPerTeam} estudiantes por equipo`), `${program} en la calculadora interna`);
+    }
+    await page.selectOption('#tech', 'Spike');
+    assert.match(await page.locator('#techCard').innerText(), /4to–6to primaria · secundaria y bachillerato/i);
+  } finally { await page.close(); }
+});
+
 test('electrónica usa un nombre de programa y conserva su cálculo', async () => {
   const page = await newPage();
   try {

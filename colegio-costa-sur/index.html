@@ -12,8 +12,7 @@
 <body>
   <header class="topbar">
     <a class="brand" href="#inicio" aria-label="GuateGeeks, propuesta para Colegio Costa Sur">
-      <span class="brand-mark" aria-hidden="true">G</span>
-      <span>Guate<span>Geeks</span></span>
+      <img src="../assets/brand/guategeeks-logo.png" alt="GuateGeeks" width="72" height="48">
     </a>
     <div class="proposal-label"><span aria-hidden="true"></span> Propuesta para Colegio Costa Sur</div>
   </header>
@@ -109,7 +108,7 @@
           <div class="field">
             <label for="student-count">Estudiantes participantes</label>
             <input id="student-count" name="students" type="number" inputmode="numeric" min="1" max="500" step="1" value="60" aria-describedby="student-count-help">
-            <small id="student-count-help">Prueba distintos tamaños de grupo. La inversión se calcula según la cantidad de equipos.</small>
+            <small id="student-count-help" aria-live="polite">Prueba distintos tamaños de grupo. La inversión se calcula según la cantidad de equipos.</small>
           </div>
           <p id="validation-message" class="validation-message" role="alert" hidden>Ingresa una cuota mayor a Q 0 y una cantidad de estudiantes entre 1 y 500.</p>
         </form>

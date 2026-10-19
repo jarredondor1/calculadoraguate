@@ -34,9 +34,8 @@ button, input { font: inherit; }
   background: #fff;
   border-bottom: 1px solid var(--gg-border);
 }
-.brand { display: inline-flex; align-items: center; gap: 10px; color: var(--gg-plum-dark); text-decoration: none; font-size: 20px; font-weight: 750; letter-spacing: -.04em; }
-.brand > span:last-child > span { color: #168aac; font-weight: 450; }
-.brand-mark { width: 34px; height: 34px; display: grid; place-items: center; border-radius: 11px; background: var(--gg-plum-dark); color: #fff; font-size: 21px; font-weight: 750; }
+.brand { min-width: 0; display: inline-flex; align-items: center; color: var(--gg-plum-dark); text-decoration: none; }
+.brand img { display: block; width: 72px; height: auto; max-height: 48px; object-fit: contain; }
 .proposal-label { display: inline-flex; align-items: center; gap: 9px; color: var(--gg-muted); font-size: 14px; font-weight: 650; }
 .proposal-label > span, .live-badge i { width: 8px; height: 8px; display: inline-block; border-radius: 50%; background: var(--gg-coral); }
 .page-shell { width: min(1200px, calc(100% - 48px)); margin: 30px auto 52px; }
