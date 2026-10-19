@@ -9,10 +9,10 @@
     Meta: {name:'Experiencias inmersivas',level:'transversal',levelName:'Tecnología transversal',buy:5550,rent:1750,evo8:44400,evo16:51100,project:'Expediciones VR',image:'realidad-virtual.png',gif:'exploracion-inmersiva.gif',alt:'Estudiantes explorando realidad virtual y una escena educativa del espacio',status:'Referencia de catálogo',description:'Una propuesta de exploraciones inmersivas con experiencias guiadas y reflexión aplicada a ciencia y tecnología.',tags:['Exploración','Ciencia','Reflexión']}
   };
   const modes = {
-    BUY: {title:'INTEGRA',months:8,description:'Adquisición del equipamiento con propiedad desde el inicio e implementación inicial.'},
-    RENT: {title:'FLEX',months:2,description:'Acceso al equipamiento mediante renta con acompañamiento durante el período seleccionado.'},
-    EVO8: {title:'EVOLUCIONA 8',months:8,description:'Un ciclo de aprendizaje con acompañamiento y equipamiento que queda en propiedad de la institución al completar el contrato.'},
-    EVO16: {title:'EVOLUCIONA 16',months:16,description:'Dos ciclos de aprendizaje con acompañamiento y equipamiento que queda en propiedad de la institución al completar el contrato.'}
+    BUY: {title:'INTEGRA',months:8,description:'Compra directa: el equipo pertenece al colegio desde el inicio. Incluye 1 hora de capacitación de uso; el tiempo adicional se cotiza por separado.'},
+    RENT: {title:'FLEX',months:2,description:'Renta del equipo y del programa durante el período elegido. El colegio puede cambiar de tecnología al iniciar cada bimestre; al terminar, devuelve el equipo.'},
+    EVO8: {title:'EVOLUCIONA 8',months:8,description:'Formato de renta pagado en cuotas durante 8 meses. Al completar el programa, el equipo queda en propiedad del colegio.'},
+    EVO16: {title:'EVOLUCIONA 16',months:16,description:'Formato de renta pagado en cuotas durante 16 meses. Al completar el programa, el equipo queda en propiedad del colegio.'}
   };
   function includedItems(mode, program, months) {
     const equipment = mode === 'BUY'
@@ -25,11 +25,38 @@
     if (mode === 'BUY') {
       items.push({title:'Implementación inicial',detail:'Orientación para poner en marcha el equipamiento en el aula.'});
       items.push({title:'Capacitación de uso',detail:'Incluye 1 hora de capacitación para el uso del equipo. El tiempo adicional se cotiza por separado.'});
+    } else if (mode === 'RENT') {
+      items[0].detail = `${program.name} disponible en renta durante ${months} meses. Se puede cambiar de tecnología al comenzar cada bimestre; el equipo, propiedad de GuateGeeks, debe devolverse al finalizar la renta.`;
     } else {
       items.push({title:'Recursos para el aula',detail:'Actividades prácticas y materiales de apoyo para integrar la tecnología al aprendizaje.'});
       items.push({title:'Acompañamiento y soporte',detail:`Orientación, seguimiento y soporte durante ${months} meses.`});
     }
     return items;
+  }
+  const modalityGuidance = {
+    BUY: {
+      eyebrow:'COMPRA DIRECTA', description:'El colegio adquiere el equipo y decide cómo organizar su uso en el aula.',
+      pros:['Propiedad del equipo desde el inicio de la compra.','La institución organiza el uso y los horarios según sus necesidades.','No hay cuotas mensuales por el equipo.'],
+      cons:['La inversión del equipo se paga de forma directa.','Incluye 1 hora; el tiempo adicional de capacitación se cotiza por separado.','Socrates Aprende no está incluida en INTEGRA.']
+    },
+    RENT: {
+      eyebrow:'RENTA BIMESTRAL', description:'FLEX da acceso temporal al equipo y al programa; la tecnología puede cambiar al iniciar un nuevo bimestre.',
+      pros:['El colegio puede elegir otra tecnología al iniciar cada bimestre.','Accede al equipo sin comprarlo.','Socrates Aprende está incluida durante el período contratado.'],
+      cons:['El equipo sigue siendo propiedad de GuateGeeks y debe devolverse al terminar la renta.','El precio cambia según la tecnología, la cantidad de equipos y los bimestres seleccionados.','El cambio de tecnología aplica al siguiente bimestre, no durante uno que ya comenzó.']
+    },
+    EVO8: {
+      eyebrow:'PROGRAMA DE 8 MESES', description:'Se paga en formato de renta y cuotas; al completar el plazo, el equipo queda en propiedad del colegio.',
+      pros:['El pago se distribuye durante 8 meses, con un pago inicial del 20 %.','Incluye Socrates Aprende, recursos y acompañamiento durante el programa.','Al completar el programa, el equipo queda en propiedad del colegio.'],
+      cons:['Para que el equipo pase a propiedad del colegio, debe completarse el plazo de 8 meses.','El programa se desarrolla con la tecnología seleccionada para ese ciclo.','La estimación no incluye gastos propios de operación del colegio.']
+    },
+    EVO16: {
+      eyebrow:'PROGRAMA DE 16 MESES', description:'Se paga en formato de renta y cuotas; al completar el plazo, el equipo queda en propiedad del colegio.',
+      pros:['El pago se distribuye durante 16 meses, con un pago inicial del 20 %.','Incluye Socrates Aprende, recursos y acompañamiento durante el programa.','Al completar el programa, el equipo queda en propiedad del colegio.'],
+      cons:['Para que el equipo pase a propiedad del colegio, debe completarse el plazo de 16 meses.','El programa se desarrolla con la tecnología seleccionada para ese ciclo.','La estimación no incluye gastos propios de operación del colegio.']
+    }
+  };
+  function setList(id, items) {
+    $(id).replaceChildren(...items.map(text => {const li=document.createElement('li');li.textContent=text;return li;}));
   }
   const $ = id => document.getElementById(id);
   const money = new Intl.NumberFormat('es-GT',{style:'currency',currency:'GTQ',minimumFractionDigits:2,maximumFractionDigits:2});
@@ -87,7 +114,15 @@
     const isEvol = mode === 'EVO8' || mode === 'EVO16';
     const isBuy = mode === 'BUY';
     $('explorer').hidden = isBuy;
-    $('integra-details').hidden = !isBuy;
+    const guidance = modalityGuidance[mode];
+    $('integra-details').hidden = false;
+    $('integra-training').hidden = !isBuy;
+    $('modality-eyebrow').textContent = guidance.eyebrow;
+    $('modality-description').textContent = guidance.description;
+    $('modality-pros-title').textContent = `Ventajas de ${model.title}`;
+    $('modality-cons-title').textContent = 'Para tomar en cuenta';
+    setList('modality-pros',guidance.pros);
+    setList('modality-cons',guidance.cons);
     $('initial-label').textContent = isEvol || mode === 'RENT' ? 'Pago inicial · 20 %' : 'Pago inicial · 100 %';
     $('initial-payment').textContent = fmt(quote.initial);
     $('installment-label').textContent = isEvol ? `${quote.months} cuotas mensuales aprox.` : mode === 'RENT' ? `Renta mensual · ${quote.months} meses` : 'Pago único';
@@ -98,7 +133,7 @@
     $('experience-title').textContent = program.name;
     $('catalog-status').textContent = `${quantity < 5 ? 'Escenario informativo · mínimo comercial 5 equipos. ' : ''}${program.name} · ${program.levelName} · ${quantity} ${quantity === 1 ? 'equipo' : 'equipos'} · ${model.title}`;
     $('suggested-fee').textContent = fmt(suggested);
-    $('suggested-description').textContent = `Referencia para ${quantity} ${quantity === 1 ? 'equipo' : 'equipos'} y ${Number.isFinite(students) && students > 0 ? students : 'el grupo seleccionado'} estudiantes con ${model.title}; la institución decide su cobro final.`;
+    $('suggested-description').textContent = `El colegio puede cobrar a cada estudiante esta cuota mensual por participar en ${model.title}. Sugerida para ${quantity} ${quantity === 1 ? 'equipo' : 'equipos'} y ${Number.isFinite(students) && students > 0 ? students : 'el grupo seleccionado'} estudiantes; la institución define el monto final.`;
     const validStudents = Number.isSafeInteger(students) && students >= 1 && students <= 500;
     const validFee = Number.isFinite(fee) && fee >= 1 && fee <= 10000;
     $('validation-message').hidden = validStudents && validFee;
@@ -109,6 +144,7 @@
       $('results-period').textContent = `${quote.months} meses`;
       $('revenue-estimate').textContent = fmt(revenue);
       $('revenue-breakdown').textContent = `${fmt(fee*students)} al mes · ${students} estudiantes`;
+      $('applied-monthly-fee').textContent = fmt(fee);
       $('gross-difference').textContent = fmt(difference);
       $('difference-per-student').textContent = fmt(difference/students);
       $('difference-per-student-month').textContent = fmt(difference/students/quote.months);
@@ -125,7 +161,9 @@
     $('included-title').textContent = `Qué incluye ${model.title}`;
     $('included-intro').textContent = mode === 'BUY'
       ? 'INTEGRA cubre el equipamiento y su puesta en marcha; el acceso a Socrates Aprende no forma parte de esta modalidad.'
-      : `${model.title} combina ${program.name.toLowerCase()}, aprendizaje digital en Socrates y acompañamiento durante ${quote.months} meses.`;
+      : mode === 'RENT'
+        ? `FLEX incluye el equipo de ${program.name.toLowerCase()}, el programa y Socrates Aprende durante ${quote.months} meses. Puedes cambiar de tecnología al iniciar cada bimestre.`
+        : `${model.title} incluye ${program.name.toLowerCase()}, Socrates Aprende y acompañamiento durante ${quote.months} meses. El equipo pasa a propiedad del colegio al completar el programa.`;
     $('included-features').replaceChildren(...includedItems(mode,program,quote.months).map(item => {
       const article=document.createElement('article'); article.className='included-feature';
       const heading=document.createElement('h3'); heading.textContent=item.title;

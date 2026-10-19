@@ -135,6 +135,19 @@ test('los beneficios cambian por modalidad y Socrates solo se incluye en FLEX y 
       assert.equal(await page.locator('#included-title').innerText(), `Qué incluye ${await page.locator('#offer-title').innerText()}`);
       assert.equal(await page.locator('#socrates-access-link').getAttribute('href'), 'https://socrates-439aa.web.app/#/semana/s01');
       assert.match(await page.locator('#included-features').innerText(), /Socrates Aprende/);
+      assert.equal(await page.locator('#integra-details').isVisible(), true, `${mode} debe explicar sus condiciones`);
+    }
+    await page.selectOption('#offer-filter', 'RENT');
+    assert.match(await page.locator('#offer-description').innerText(), /cambiar de tecnología al iniciar cada bimestre/i);
+    assert.match(await page.locator('#included-features').innerText(), /equipo.*propiedad de GuateGeeks/i);
+    assert.match(await page.locator('#integra-pros').innerText(), /elegir otra tecnología al iniciar cada bimestre/i);
+    assert.match(await page.locator('#integra-considerations').innerText(), /debe devolverse al terminar la renta/i);
+    assert.doesNotMatch(await page.locator('#included-features').innerText(), /seguimiento y soporte/i);
+    for (const mode of ['EVO8', 'EVO16']) {
+      await page.selectOption('#offer-filter', mode);
+      assert.match(await page.locator('#included-features').innerText(), /propiedad del colegio al completar/i);
+      assert.match(await page.locator('#integra-pros').innerText(), /completar.*equipo.*propiedad/i);
+      assert.match(await page.locator('#integra-considerations').innerText(), /completar.*plazo/i);
     }
     await page.selectOption('#offer-filter', 'BUY');
     assert.equal(await page.locator('#socrates-inclusion').isVisible(), false);
@@ -168,7 +181,7 @@ test('INTEGRA presenta compra y capacitación aparte sin simulación de cobro es
     assert.equal(integraLayout.columns.split(' ').length, 1);
     await page.selectOption('#offer-filter', 'EVO8');
     assert.equal(await page.locator('#explorer').isVisible(), true);
-    assert.equal(await page.locator('#integra-details').isVisible(), false);
+    assert.equal(await page.locator('#integra-details').isVisible(), true);
   } finally { await page.close(); }
 });
 
@@ -506,6 +519,9 @@ test('la propuesta Costa Sur comunica la inversión y el escenario sugerido', as
     assert.match(await page.locator('#quote-net').innerText(), /63,494\.00/);
     assert.match(await page.locator('#quote-total-with-vat').innerText(), /71,113\.28/);
     assert.match(await page.locator('#suggested-fee').innerText(), /200/);
+    assert.match(await page.locator('#suggested-description').innerText(), /puede cobrar a cada estudiante esta cuota mensual/i);
+    assert.match(await page.locator('#school-fee').getAttribute('aria-label') || '', /cuota mensual/i);
+    assert.match(await page.locator('#applied-monthly-fee').innerText(), /200/);
     assert.match(await page.locator('#revenue-estimate').innerText(), /96,000\.00/);
     assert.match(await page.locator('#gross-difference').innerText(), /24,886\.72/);
     assert.match(await page.locator('#difference-per-student').innerText(), /414\.78/);
@@ -519,13 +535,14 @@ test('el colegio ajusta su cuota y observa el efecto en vivo', async () => {
     await page.goto(`${baseURL}/colegio-costa-sur/index.html`);
     await page.uncheck('#use-suggested-fee');
     await page.fill('#school-fee', '250');
+    assert.match(await page.locator('#applied-monthly-fee').innerText(), /250/);
     assert.match(await page.locator('#revenue-estimate').innerText(), /120,000\.00/);
     assert.match(await page.locator('#gross-difference').innerText(), /48,886\.72/);
     await page.fill('#student-count', '30');
     assert.match(await page.locator('#revenue-estimate').innerText(), /60,000\.00/);
     assert.match(await page.locator('#quote-total-with-vat').innerText(), /71,113\.28/);
-    assert.match(await page.locator('body').innerText(), /Cobro mensual sugerido por GuateGeeks/);
-    assert.match(await page.locator('body').innerText(), /Cobro mensual por estudiante que evaluaría el colegio/);
+    assert.match(await page.locator('body').innerText(), /Cuota mensual sugerida que el colegio puede cobrar/i);
+    assert.match(await page.locator('body').innerText(), /Cuota mensual por estudiante que el colegio cobraría/i);
   } finally { await page.close(); }
 });
 

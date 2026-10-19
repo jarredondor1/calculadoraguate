@@ -167,7 +167,7 @@ button, input { font: inherit; }
 .result-tile > small { color: #777180; font-size: 12px; }
 .result-highlight { background: var(--gg-mint); }
 .result-highlight > strong { color: #266f61; }
-.student-results { display: grid; grid-template-columns: repeat(2, minmax(0,1fr)); gap: 12px; margin-top: 12px; }
+.student-results { display: grid; grid-template-columns: repeat(3, minmax(0,1fr)); gap: 12px; margin-top: 12px; }
 .student-results > div { display: flex; align-items: center; justify-content: space-between; gap: 10px; padding: 13px 15px; border: 1px solid var(--gg-border); border-radius: 12px; }
 .student-results span { color: var(--gg-muted); font-size: 12px; }
 .student-results strong { color: var(--gg-plum-dark); font-size: 16px; white-space: nowrap; }

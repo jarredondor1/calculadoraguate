@@ -77,12 +77,12 @@
       <p class="platform-excluded" id="platform-excluded" hidden>Socrates Aprende no está incluida en INTEGRA. Está incluida en FLEX, EVOLUCIONA 8 y EVOLUCIONA 16.</p>
     </section>
 
-    <section class="integra-details" id="integra-details" aria-labelledby="integra-title" hidden>
-      <div class="section-heading"><div><p class="eyebrow">COMPRA DIRECTA</p><h2 id="integra-title">INTEGRA: el equipo es del colegio</h2></div><p>Una modalidad para instituciones que prefieren adquirir el equipo y planificar su uso directamente.</p></div>
-      <div class="integra-training" id="integra-training"><div><span class="included-badge">INCLUIDA · 1 HORA</span><h3>Capacitación de uso</h3><p>Incluye 1 hora para aprender a usar el equipo. Si el colegio requiere más tiempo, se cotiza por separado.</p></div><strong>Tiempo adicional: se cotiza por separado</strong></div>
+    <section class="integra-details" id="integra-details" aria-labelledby="integra-title">
+      <div class="section-heading"><div><p class="eyebrow" id="modality-eyebrow">CONDICIONES DEL MODELO</p><h2 id="integra-title">Ventajas y puntos a considerar</h2></div><p id="modality-description">Revisa qué recibe la institución y qué implica la modalidad seleccionada.</p></div>
+      <div class="integra-training" id="integra-training" hidden><div><span class="included-badge">INCLUIDA · 1 HORA</span><h3>Capacitación de uso</h3><p>Incluye 1 hora para aprender a usar el equipo. Si el colegio requiere más tiempo, se cotiza por separado.</p></div><strong>Tiempo adicional: se cotiza por separado</strong></div>
       <div class="integra-comparison">
-        <article class="integra-point integra-pros" id="integra-pros"><h3>Ventajas de comprar</h3><ul><li>Propiedad del equipo desde el inicio.</li><li>La institución decide cómo organizar su uso y horarios.</li><li>Compra directa, sin pagos mensuales por el equipo.</li></ul></article>
-        <article class="integra-point integra-considerations" id="integra-considerations"><h3>Para tomar en cuenta</h3><ul><li>La inversión del equipo se paga de forma directa.</li><li>El tiempo adicional de capacitación se cotiza por separado.</li><li>Socrates Aprende no está incluida en INTEGRA.</li></ul></article>
+        <article class="integra-point integra-pros" id="integra-pros"><h3 id="modality-pros-title">Ventajas</h3><ul id="modality-pros"></ul></article>
+        <article class="integra-point integra-considerations" id="integra-considerations"><h3 id="modality-cons-title">Para tomar en cuenta</h3><ul id="modality-cons"></ul></article>
       </div>
     </section>
 
@@ -96,14 +96,14 @@
         <form class="scenario-card" id="scenario-form" novalidate>
           <div class="scenario-card-heading"><h3>Escenario del colegio</h3><span class="live-badge"><i></i> EN VIVO</span></div>
           <div class="suggested-card">
-            <span>Cobro mensual sugerido por GuateGeeks</span>
+            <span>Cuota mensual sugerida que el colegio puede cobrar</span>
             <strong id="suggested-fee">Q 200.00</strong>
-            <small id="suggested-description">Por estudiante al mes, según modalidad, equipos y cantidad de estudiantes.</small>
+            <small id="suggested-description">Monto mensual por estudiante que la institución puede cobrar por participar en el programa.</small>
           </div>
           <div class="field">
-            <label for="school-fee">Cobro mensual por estudiante que evaluaría el colegio</label>
+            <label for="school-fee">Cuota mensual por estudiante que el colegio cobraría</label>
             <label class="suggested-toggle" for="use-suggested-fee"><input id="use-suggested-fee" type="checkbox" checked> Seguir sugerencia GuateGeeks</label>
-            <div class="currency-input"><span aria-hidden="true">Q</span><input id="school-fee" name="schoolFee" type="number" inputmode="decimal" min="1" max="10000" step="0.01" value="200" aria-describedby="school-fee-help"></div>
+            <div class="currency-input"><span aria-hidden="true">Q</span><input id="school-fee" name="schoolFee" type="number" inputmode="decimal" min="1" max="10000" step="0.01" value="200" aria-label="Cuota mensual por estudiante que el colegio cobraría" aria-describedby="school-fee-help"></div>
             <small id="school-fee-help">El valor se ajusta con el programa, modalidad, equipos y estudiantes. Desmarca para definir otra cuota.</small>
           </div>
           <div class="field">
@@ -122,7 +122,8 @@
           </div>
           <div class="student-results">
             <div><span id="student-total-label">Por estudiante · durante 8 meses</span><strong id="difference-per-student">Q 414.78</strong></div>
-            <div><span>Por estudiante · al mes</span><strong id="difference-per-student-month">Q 51.85</strong></div>
+            <div><span>Cuota que cobraría · estudiante / mes</span><strong id="applied-monthly-fee">Q 200.00</strong></div>
+            <div><span>Diferencia bruta · estudiante / mes</span><strong id="difference-per-student-month">Q 51.85</strong></div>
           </div>
           <p class="disclosure">Es una estimación antes de gastos, cobros e impuestos propios del colegio; no representa utilidad neta.</p>
         </section>
