@@ -10,9 +10,9 @@
   };
   const modes = {
     BUY: {title:'INTEGRA',months:8,description:'Compra directa: el equipo pertenece al colegio desde el inicio. Incluye 1 hora de capacitación de uso; el tiempo adicional se cotiza por separado.'},
-    RENT: {title:'FLEX',months:2,description:'Renta del equipo y del programa durante el período elegido. El colegio puede cambiar de tecnología al iniciar cada bimestre; al terminar, devuelve el equipo.'},
-    EVO8: {title:'EVOLUCIONA 8',months:8,description:'Formato de renta pagado en cuotas durante 8 meses. Al completar el programa, el equipo queda en propiedad del colegio.'},
-    EVO16: {title:'EVOLUCIONA 16',months:16,description:'Formato de renta pagado en cuotas durante 16 meses. Al completar el programa, el equipo queda en propiedad del colegio.'}
+    RENT: {title:'FLEX',months:2,description:'Incluye el equipo, el programa, capacitación docente, integración tecnológica, seguimiento y soporte durante la renta. El colegio puede cambiar de tecnología al iniciar cada bimestre; al terminar, devuelve el equipo.'},
+    EVO8: {title:'EVOLUCIONA 8',months:8,description:'Incluye equipo, Socrates Aprende, capacitación docente, integración tecnológica, seguimiento y soporte durante 8 meses. Se paga en cuotas y, al completar el programa, el equipo queda en propiedad del colegio.'},
+    EVO16: {title:'EVOLUCIONA 16',months:16,description:'Incluye equipo, Socrates Aprende, capacitación docente, integración tecnológica, seguimiento y soporte durante 16 meses. Se paga en cuotas y, al completar el programa, el equipo queda en propiedad del colegio.'}
   };
   function includedItems(mode, program, months) {
     const equipment = mode === 'BUY'
@@ -27,9 +27,12 @@
       items.push({title:'Capacitación de uso',detail:'Incluye 1 hora de capacitación para el uso del equipo. El tiempo adicional se cotiza por separado.'});
     } else if (mode === 'RENT') {
       items[0].detail = `${program.name} disponible en renta durante ${months} meses. Se puede cambiar de tecnología al comenzar cada bimestre; el equipo, propiedad de GuateGeeks, debe devolverse al finalizar la renta.`;
+      items.push({title:'Capacitación docente e integración tecnológica',detail:'Capacitación para docentes e integración de la tecnología al trabajo del aula.'});
+      items.push({title:'Seguimiento y soporte',detail:`Seguimiento a la implementación y soporte durante los ${months} meses de renta.`});
     } else {
+      items.push({title:'Capacitación docente e integración tecnológica',detail:'Capacitación para docentes e integración de la tecnología al trabajo del aula.'});
       items.push({title:'Recursos para el aula',detail:'Actividades prácticas y materiales de apoyo para integrar la tecnología al aprendizaje.'});
-      items.push({title:'Acompañamiento y soporte',detail:`Orientación, seguimiento y soporte durante ${months} meses.`});
+      items.push({title:'Seguimiento y soporte',detail:`Seguimiento a la implementación y soporte durante los ${months} meses del programa.`});
     }
     return items;
   }
@@ -41,17 +44,17 @@
     },
     RENT: {
       eyebrow:'RENTA BIMESTRAL', description:'FLEX da acceso temporal al equipo y al programa; la tecnología puede cambiar al iniciar un nuevo bimestre.',
-      pros:['El colegio puede elegir otra tecnología al iniciar cada bimestre.','Accede al equipo sin comprarlo.','Socrates Aprende está incluida durante el período contratado.'],
+      pros:['El colegio puede elegir otra tecnología al iniciar cada bimestre.','Incluye capacitación docente, integración tecnológica, seguimiento y soporte.','Socrates Aprende está incluida durante el período contratado.'],
       cons:['El equipo sigue siendo propiedad de GuateGeeks y debe devolverse al terminar la renta.','El precio cambia según la tecnología, la cantidad de equipos y los bimestres seleccionados.','El cambio de tecnología aplica al siguiente bimestre, no durante uno que ya comenzó.']
     },
     EVO8: {
       eyebrow:'PROGRAMA DE 8 MESES', description:'Se paga en formato de renta y cuotas; al completar el plazo, el equipo queda en propiedad del colegio.',
-      pros:['El pago se distribuye durante 8 meses, con un pago inicial del 20 %.','Incluye Socrates Aprende, recursos y acompañamiento durante el programa.','Al completar el programa, el equipo queda en propiedad del colegio.'],
+      pros:['El pago se distribuye durante 8 meses, con un pago inicial del 20 %.','Incluye Socrates Aprende, capacitación docente, integración tecnológica, seguimiento y soporte.','Al completar el programa, el equipo queda en propiedad del colegio.'],
       cons:['Para que el equipo pase a propiedad del colegio, debe completarse el plazo de 8 meses.','El programa se desarrolla con la tecnología seleccionada para ese ciclo.','La estimación no incluye gastos propios de operación del colegio.']
     },
     EVO16: {
       eyebrow:'PROGRAMA DE 16 MESES', description:'Se paga en formato de renta y cuotas; al completar el plazo, el equipo queda en propiedad del colegio.',
-      pros:['El pago se distribuye durante 16 meses, con un pago inicial del 20 %.','Incluye Socrates Aprende, recursos y acompañamiento durante el programa.','Al completar el programa, el equipo queda en propiedad del colegio.'],
+      pros:['El pago se distribuye durante 16 meses, con un pago inicial del 20 %.','Incluye Socrates Aprende, capacitación docente, integración tecnológica, seguimiento y soporte.','Al completar el programa, el equipo queda en propiedad del colegio.'],
       cons:['Para que el equipo pase a propiedad del colegio, debe completarse el plazo de 16 meses.','El programa se desarrolla con la tecnología seleccionada para ese ciclo.','La estimación no incluye gastos propios de operación del colegio.']
     }
   };
@@ -162,8 +165,8 @@
     $('included-intro').textContent = mode === 'BUY'
       ? 'INTEGRA cubre el equipamiento y su puesta en marcha; el acceso a Socrates Aprende no forma parte de esta modalidad.'
       : mode === 'RENT'
-        ? `FLEX incluye el equipo de ${program.name.toLowerCase()}, el programa y Socrates Aprende durante ${quote.months} meses. Puedes cambiar de tecnología al iniciar cada bimestre.`
-        : `${model.title} incluye ${program.name.toLowerCase()}, Socrates Aprende y acompañamiento durante ${quote.months} meses. El equipo pasa a propiedad del colegio al completar el programa.`;
+        ? `FLEX incluye el equipo de ${program.name.toLowerCase()}, el programa, Socrates Aprende, capacitación docente, integración tecnológica, seguimiento y soporte durante ${quote.months} meses. Puedes cambiar de tecnología al iniciar cada bimestre; al terminar, el equipo se devuelve.`
+        : `${model.title} incluye ${program.name.toLowerCase()}, Socrates Aprende, capacitación docente, integración tecnológica, seguimiento y soporte durante ${quote.months} meses. Al completar el programa, el equipo pasa a propiedad del colegio.`;
     $('included-features').replaceChildren(...includedItems(mode,program,quote.months).map(item => {
       const article=document.createElement('article'); article.className='included-feature';
       const heading=document.createElement('h3'); heading.textContent=item.title;

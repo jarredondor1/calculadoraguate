@@ -135,6 +135,9 @@ test('los beneficios cambian por modalidad y Socrates solo se incluye en FLEX y 
       assert.equal(await page.locator('#included-title').innerText(), `Qué incluye ${await page.locator('#offer-title').innerText()}`);
       assert.equal(await page.locator('#socrates-access-link').getAttribute('href'), 'https://socrates-439aa.web.app/#/semana/s01');
       assert.match(await page.locator('#included-features').innerText(), /Socrates Aprende/);
+      assert.match(await page.locator('#included-features').innerText(), /capacitación docente/i, `${mode} incluye capacitación`);
+      assert.match(await page.locator('#included-features').innerText(), /integración tecnológica/i, `${mode} incluye integración`);
+      assert.match(await page.locator('#included-features').innerText(), /seguimiento y soporte/i, `${mode} incluye seguimiento y soporte`);
       assert.equal(await page.locator('#integra-details').isVisible(), true, `${mode} debe explicar sus condiciones`);
     }
     await page.selectOption('#offer-filter', 'RENT');
@@ -142,7 +145,6 @@ test('los beneficios cambian por modalidad y Socrates solo se incluye en FLEX y 
     assert.match(await page.locator('#included-features').innerText(), /equipo.*propiedad de GuateGeeks/i);
     assert.match(await page.locator('#integra-pros').innerText(), /elegir otra tecnología al iniciar cada bimestre/i);
     assert.match(await page.locator('#integra-considerations').innerText(), /debe devolverse al terminar la renta/i);
-    assert.doesNotMatch(await page.locator('#included-features').innerText(), /seguimiento y soporte/i);
     for (const mode of ['EVO8', 'EVO16']) {
       await page.selectOption('#offer-filter', mode);
       assert.match(await page.locator('#included-features').innerText(), /propiedad del colegio al completar/i);
