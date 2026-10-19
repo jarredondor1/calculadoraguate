@@ -43,15 +43,21 @@
     if (mode === 'EVO8') net = program.evo8 * quantity / 5 * 1.06;
     if (mode === 'EVO16') net = program.evo16 * quantity / 5 * 1.10;
     const tax = net * .12, gross = net + tax;
-    const initialRate = mode === 'EVO8' || mode === 'EVO16' ? .2 : mode === 'BUY' ? 1 : 0;
+    const initialRate = mode === 'EVO8' || mode === 'EVO16' || mode === 'RENT' ? .2 : 1;
     const initial = gross * initialRate;
-    return {net,tax,gross,months,initial,monthly:mode === 'EVO8' || mode === 'EVO16' ? (gross-initial)/months : mode === 'RENT' ? gross/months : 0,initialRate};
+    return {net,tax,gross,months,initial,monthly:mode === 'BUY' ? 0 : (gross-initial)/months,initialRate};
   }
   function render() {
     const programId = selectedProgramId(), program = programs[programId], mode = modeFilter.value, model = modes[mode];
     const quantity = Math.max(1,Math.min(100,Math.floor(Number(qtyInput.value) || 1)));
     if (qtyInput.value !== String(quantity)) qtyInput.value = String(quantity);
-    const quote = totals(program,mode,quantity), students = Number(studentsInput.value), fee = Number(feeInput.value);
+    const quote = totals(program,mode,quantity), students = Number(studentsInput.value);
+    const suggested = Math.ceil((quote.gross / Math.max(1,Number.isFinite(students) ? students : 1) / quote.months / .75) / 5) * 5;
+    const followSuggested = $('use-suggested-fee').checked;
+    feeInput.readOnly = followSuggested;
+    if (followSuggested) feeInput.value = String(suggested);
+    $('school-fee-help').textContent = followSuggested ? 'El cobro sigue la sugerencia; desmarca la casilla para probar una cuota propia.' : 'Prueba un cobro distinto. Puedes volver a activar la sugerencia cuando quieras.';
+    const fee = Number(feeInput.value);
     $('offer-title').textContent = model.title;
     $('offer-description').textContent = model.description;
     $('term-badge').textContent = `${quote.months} meses`;
@@ -63,7 +69,7 @@
     else $('quote-basis').textContent = `${model.title} para ${quantity} ${quantity === 1 ? 'equipo' : 'equipos'} · ${quote.months} meses`;
     const isEvol = mode === 'EVO8' || mode === 'EVO16';
     const isBuy = mode === 'BUY';
-    $('initial-label').textContent = isEvol ? 'Pago inicial · 20 %' : isBuy ? 'Pago inicial · 100 %' : 'Pago inicial';
+    $('initial-label').textContent = isEvol || mode === 'RENT' ? 'Pago inicial · 20 %' : 'Pago inicial · 100 %';
     $('initial-payment').textContent = fmt(quote.initial);
     $('installment-label').textContent = isEvol ? `${quote.months} cuotas mensuales aprox.` : mode === 'RENT' ? `Renta mensual · ${quote.months} meses` : 'Pago único';
     $('monthly-payment').textContent = isBuy ? '—' : fmt(quote.monthly);
@@ -72,7 +78,7 @@
     $('rental-field').hidden = mode !== 'RENT';
     $('experience-title').textContent = program.name;
     $('catalog-status').textContent = `${quantity < 5 ? 'Escenario informativo · mínimo comercial 5 equipos. ' : ''}${program.name} · ${program.levelName} · ${quantity} ${quantity === 1 ? 'equipo' : 'equipos'} · ${model.title}`;
-    $('suggested-fee').textContent = fmt(Math.ceil((quote.gross / Math.max(1,students) / quote.months / .75) / 5) * 5);
+    $('suggested-fee').textContent = fmt(suggested);
     $('suggested-description').textContent = `Referencia para ${quantity} ${quantity === 1 ? 'equipo' : 'equipos'} y ${Number.isFinite(students) && students > 0 ? students : 'el grupo seleccionado'} estudiantes con ${model.title}; la institución decide su cobro final.`;
     const validStudents = Number.isSafeInteger(students) && students >= 1 && students <= 500;
     const validFee = Number.isFinite(fee) && fee >= 1 && fee <= 10000;
@@ -105,6 +111,7 @@
   levelFilter.addEventListener('change',() => {refreshPrograms();render();});
   [programFilter,modeFilter,qtyInput,feeInput,studentsInput].forEach(el => el.addEventListener('input',render));
   [programFilter,modeFilter].forEach(el => el.addEventListener('change',render));
+  $('use-suggested-fee').addEventListener('change',render);
   $('rental-period').addEventListener('change',render);
   render();
 })();

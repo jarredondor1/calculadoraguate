@@ -114,6 +114,9 @@ button, input { font: inherit; }
 .suggested-card > small { grid-column: 1/-1; color: #81798a; font-size: 12px; }
 .field { margin-top: 16px; }
 .field label { display: block; margin-bottom: 7px; color: #474252; font-size: 14px; font-weight: 750; }
+.field .suggested-toggle { display: flex; align-items: center; gap: 8px; margin: 0 0 8px; color: var(--gg-plum-dark); font-size: 13px; font-weight: 700; cursor: pointer; }
+.field .suggested-toggle input { width: 17px; min-height: 17px; margin: 0; accent-color: var(--gg-plum-dark); }
+.field input[readonly] { background: #f7f4fa; color: var(--gg-plum-dark); }
 .field input { width: 100%; min-height: 50px; padding: 11px 13px; border: 1px solid #d7d1df; border-radius: 11px; background: #fff; color: var(--gg-ink); font-size: 17px; font-weight: 650; }
 .currency-input { position: relative; }
 .currency-input > span { position: absolute; top: 50%; left: 14px; z-index: 1; transform: translateY(-50%); color: #6c6577; font-size: 16px; font-weight: 700; }

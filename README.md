@@ -35,7 +35,7 @@ La pantalla institucional oculta los costos y márgenes internos, pero **no prot
 
 ## Propuesta compartible para Colegio Costa Sur
 
-La ruta `/colegio-costa-sur/` es una propuesta interactiva con el catálogo de seis programas y las cuatro modalidades comerciales (INTEGRA, FLEX, EVOLUCIONA 8 y EVOLUCIONA 16). El colegio puede filtrar por nivel, elegir programa y modalidad, ajustar equipos, estudiantes y el cobro mensual que evaluaría. La inversión, el IVA, las condiciones de pago, el proyecto visual y las estimaciones de ingresos se actualizan en vivo. La página solo usa precios de venta y no incluye los costos ni márgenes internos de GuateGeeks.
+La ruta `/colegio-costa-sur/` es una propuesta interactiva con el catálogo de seis programas y las cuatro modalidades comerciales (INTEGRA, FLEX, EVOLUCIONA 8 y EVOLUCIONA 16). El cobro sugerido se activa por defecto y se recalcula con programa, modalidad, equipos y estudiantes; la institución puede desactivarlo para probar su propio precio. FLEX requiere 20% inicial y el saldo se distribuye en pagos mensuales. La inversión, el IVA, las condiciones de pago, el proyecto visual y las estimaciones de ingresos se actualizan en vivo. La página solo usa precios de venta y no incluye los costos ni márgenes internos de GuateGeeks.
 
 ## Persistencia de campos
 

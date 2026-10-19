@@ -95,6 +95,7 @@ test('el precio por equipo, la sugerencia y la estimación se recalculan con el 
     await page.selectOption('#offer-filter', 'BUY');
     await page.fill('#equipment-count', '1');
     await page.fill('#student-count', '50');
+    await page.uncheck('#use-suggested-fee');
     await page.fill('#school-fee', '100');
     assert.match(await page.locator('#quote-net').innerText(), /2,000/);
     assert.match(await page.locator('#quote-basis').innerText(), /1 equipo × Q 2,000\.00 por equipo/);
@@ -105,6 +106,28 @@ test('el precio por equipo, la sugerencia y la estimación se recalculan con el 
     assert.match(await page.locator('#suggested-fee').innerText(), /25/);
     assert.match(await page.locator('#revenue-estimate').innerText(), /40,000/);
     assert.match(await page.locator('#gross-difference').innerText(), /33,280/);
+  } finally { await page.close(); }
+});
+
+test('el cobro sigue la sugerencia al cambiar el escenario y FLEX financia 80% tras el 20% inicial', async () => {
+  const page = await newPage();
+  try {
+    await page.goto(`${baseURL}/colegio-costa-sur/index.html`);
+    await page.selectOption('#program-filter', 'TaleBot');
+    await page.selectOption('#offer-filter', 'RENT');
+    await page.fill('#equipment-count', '1');
+    await page.fill('#student-count', '40');
+    assert.equal(await page.inputValue('#school-fee'), '15');
+    assert.equal(await page.locator('#school-fee').isEditable(), false);
+    assert.match(await page.locator('#initial-label').innerText(), /Pago inicial · 20 %/);
+    assert.match(await page.locator('#initial-payment').innerText(), /128\.80/);
+    assert.match(await page.locator('#monthly-payment').innerText(), /257\.60/);
+    await page.fill('#student-count', '20');
+    assert.equal(await page.inputValue('#school-fee'), '25');
+    await page.uncheck('#use-suggested-fee');
+    await page.fill('#school-fee', '30');
+    await page.fill('#student-count', '40');
+    assert.equal(await page.inputValue('#school-fee'), '30');
   } finally { await page.close(); }
 });
 
@@ -453,6 +476,7 @@ test('el colegio ajusta su cuota y observa el efecto en vivo', async () => {
   const page = await newPage();
   try {
     await page.goto(`${baseURL}/colegio-costa-sur/index.html`);
+    await page.uncheck('#use-suggested-fee');
     await page.fill('#school-fee', '250');
     assert.match(await page.locator('#revenue-estimate').innerText(), /120,000\.00/);
     assert.match(await page.locator('#gross-difference').innerText(), /48,886\.72/);
@@ -477,6 +501,7 @@ test('la propuesta Costa Sur valida entradas y no muestra las cuentas internas',
     assert.equal(await page.locator('#results').isVisible(), false);
     assert.equal(await page.locator('#validation-message[role="alert"]').isVisible(), true);
     await page.fill('#student-count', '60');
+    await page.uncheck('#use-suggested-fee');
     await page.fill('#school-fee', '-1');
     assert.equal(await page.locator('#results').isVisible(), false);
     assert.equal(await page.locator('#validation-message[role="alert"]').isVisible(), true);
