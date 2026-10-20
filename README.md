@@ -16,7 +16,7 @@ El simulador muestra:
 - sugerencia de cobro mensual al estudiante;
 - ingreso y ganancia bruta estimada para la institución educativa;
 - costo directo, ganancia bruta y margen de GuateGeeks;
-- pagos iniciales y cuotas para EVOLUCIONA;
+- pagos iniciales y cuotas para FLEX (20 % inicial) y EVOLUCIONA;
 - comparación de ofertas y referencia básica de mercado.
 
 ## Presentación para la institución
@@ -29,7 +29,15 @@ La vista institucional destaca la inversión sin IVA y muestra el total con IVA 
 
 La ficha de CiudadBots enlaza al programa disponible; la referencia del Robot Cartógrafo conserva su atribución original a Ignat Khlebnikov / RoboRiseIT. Las fichas de robótica para pequeños y primaria muestran fotografías de equipos proporcionadas por GuateGeeks y actividades ilustrativas cuyo alcance debe confirmarse. La imagen de drones es una ilustración generada, inspirada en un dron educativo pequeño; el equipo y la actividad se confirman en la propuesta. Las fichas de electrónica y realidad virtual son referencias del catálogo de programas próximos y proceden del portal educativo de GuateGeeks.
 
-La sección del programa presenta **Socrates Aprende** mediante un recorrido animado compuesto por capturas reales de la semana 1, que se puede pausar, y enlaza a la plataforma. La muestra observada corresponde a sexto primaria; la disponibilidad de otros grados debe confirmarse en Socrates. La animación es una vista previa, no una conexión de datos con el simulador.
+La sección del programa presenta **Socrates Aprende** mediante un recorrido animado compuesto por capturas reales de la semana 1, que se puede pausar, y enlaza a la plataforma. La muestra observada corresponde a sexto primaria. La disponibilidad para estudiantes se comunica por fases; la animación es una vista previa, no una conexión de datos con el simulador.
+
+## Cotizaciones en PDF
+
+El botón **Crear cotización PDF** abre un formulario para indicar institución, contacto, ubicación, vigencia y una nota opcional. Elige una modalidad; cuando la calculadora está en **Comparar todas**, el formulario propone EVOLUCIONA 16 y permite cambiarla. La vista previa muestra el programa, los equipos, los estudiantes y los importes actuales. Al descargar, se genera un PDF A4 con identidad de GuateGeeks, imagen del proyecto de la tecnología elegida, inversión sin IVA, IVA, total con IVA, forma de pago y alcance de la modalidad. Los datos del formulario se procesan localmente en el navegador y no se guardan ni envían a un servidor.
+
+La proyección de cobro por estudiante es opcional para FLEX y EVOLUCIONA, y se agrega como tercera página; INTEGRA no la ofrece. El PDF excluye costos, márgenes y ganancia interna de GuateGeeks. La cotización sigue siendo una estimación sujeta a confirmación comercial. El acceso a Socrates Aprende no está incluido en INTEGRA. Para las demás modalidades, el contenido estudiantil actual abarca 4.º a 6.º primaria; de preprimaria a 3.º primaria los recursos son para docentes, y el tiempo de acceso se acuerda con GuateGeeks.
+
+La generación usa una copia local de `pdf-lib` en `assets/vendor/`, junto con su licencia, para que funcione en GitHub Pages sin cargar servicios externos.
 
 La pantalla institucional oculta los costos y márgenes internos, pero **no protege su confidencialidad**: se encuentran en el HTML y JavaScript publicados por GitHub Pages. Para protegerlos es necesario restringir o separar el simulador interno y sus datos mediante una solución de acceso adecuada.
 
@@ -47,7 +55,7 @@ El sitio no necesita compilación ni dependencias para funcionar. Está preparad
 python3 -m http.server 8000
 ```
 
-Después, visita `http://localhost:8000/`. Los archivos `client.js`, `client.css` y `assets/` deben publicarse junto con `index.html`.
+Después, visita `http://localhost:8000/`. Los archivos `client.js`, `client.css`, `quote.js` y `assets/` deben publicarse junto con `index.html`.
 
 ## Pruebas de desarrollo
 

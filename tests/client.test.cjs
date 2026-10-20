@@ -4,6 +4,7 @@ const http = require('node:http');
 const fs = require('node:fs');
 const path = require('node:path');
 const {chromium} = require('playwright-core');
+const {PDFDocument} = require('pdf-lib');
 
 const root = path.resolve(__dirname, '..');
 let server, browser, baseURL;
@@ -379,5 +380,92 @@ test('opciones guardadas que ya no existen no rompen el simulador', async () => 
     await page.click('#client-view-button');
     assert.match(await page.locator('#client-project').innerText(), /Robot Cartógrafo/);
     assert.equal(await page.locator('#client-offers .client-offer').count(), 4);
+  } finally { await page.close(); }
+});
+
+test('la cotización sigue la modalidad y los importes del escenario sin exponer la vista interna', async () => {
+  const page = await newPage();
+  try {
+    await page.selectOption('#tech', 'TaleBot');
+    await page.selectOption('#mode', 'RENT');
+    await page.selectOption('#bims', '2');
+    await page.fill('#qty', '6');
+    await page.fill('#students', '48');
+    await page.click('#quote-open');
+    assert.equal(await page.locator('#quote-dialog').isVisible(), true);
+    assert.equal(await page.inputValue('#quote-mode'), 'RENT');
+    const snapshot = await page.locator('#quote-snapshot').innerText();
+    assert.match(snapshot, /Robótica para pequeños · 6 equipos · 48 estudiantes/);
+    const expectedNet = await page.evaluate(() => calc().RENT.net);
+    assert.ok(snapshot.includes(`Q ${expectedNet.toLocaleString('es-GT', {minimumFractionDigits: 2, maximumFractionDigits: 2})}`));
+    assert.doesNotMatch(snapshot, /Costo directo|Margen bruto GG|Ganancia bruta GG/);
+    const schedule = await page.evaluate(() => ({initial: calc().RENT.initial, monthly: calc().RENT.installment, gross: calc().RENT.gross}));
+    assert.ok(Math.abs(schedule.initial - schedule.gross * .2) < .01);
+    assert.ok(Math.abs(schedule.initial + schedule.monthly * 4 - schedule.gross) < .01);
+    await page.selectOption('#quote-mode', 'BUY');
+    assert.equal(await page.locator('#quote-projection').isDisabled(), true);
+    await page.selectOption('#quote-mode', 'RENT');
+    assert.equal(await page.locator('#quote-projection').isEnabled(), true);
+    await page.click('#quote-cancel');
+    assert.equal(await page.locator('#quote-dialog').isVisible(), false);
+  } finally { await page.close(); }
+});
+
+test('descarga una propuesta PDF de dos páginas y una proyección opcional en la tercera', async () => {
+  const page = await newPage();
+  try {
+    await page.selectOption('#tech', 'Spike');
+    await page.selectOption('#mode', 'EVO8');
+    await page.fill('#qty', '5');
+    await page.fill('#students', '75');
+    await page.click('#quote-open');
+    await page.fill('#quote-school', 'Colegio Costa Sur');
+    await page.fill('#quote-contact', 'Ana García');
+    await page.fill('#quote-email', 'ana@colegio.edu.gt');
+    const firstDownload = page.waitForEvent('download');
+    await page.click('#quote-download');
+    const first = await firstDownload;
+    assert.match(first.suggestedFilename(), /GuateGeeks-cotizacion-colegio-costa-sur-evoluciona-8\.pdf/);
+    const firstBytes = fs.readFileSync(await first.path());
+    assert.equal(firstBytes.subarray(0, 5).toString(), '%PDF-');
+    const firstPdf = await PDFDocument.load(firstBytes);
+    assert.equal(firstPdf.getPageCount(), 2);
+    assert.match(firstPdf.getTitle(), /Colegio Costa Sur/);
+    assert.match(firstPdf.getSubject(), /EVOLUCIONA 8.*Robótica para grandes/);
+
+    await page.click('#quote-open');
+    await page.check('#quote-projection');
+    const secondDownload = page.waitForEvent('download');
+    await page.click('#quote-download');
+    const second = await secondDownload;
+    const secondPdf = await PDFDocument.load(fs.readFileSync(await second.path()));
+    assert.equal(secondPdf.getPageCount(), 3);
+  } finally { await page.close(); }
+});
+
+test('cada tecnología genera una cotización PDF con su programa y su proyecto', async () => {
+  const page = await newPage();
+  try {
+    for (const [tech, program, title] of [
+      ['TaleBot', 'Robótica para pequeños', 'Rutas para pequeños'],
+      ['Robot Master', 'Robótica para primaria', 'Robots que se mueven'],
+      ['Spike', 'Robótica para grandes', 'Robot Cartógrafo'],
+      ['Snap', 'Electrónica', 'Circuitos en Acción'],
+      ['Meta', 'Realidad virtual educativa', 'Expediciones VR'],
+      ['Drones', 'Drones Educativos', 'Aventura de vuelo']
+    ]) {
+      await page.selectOption('#tech', tech);
+      await page.selectOption('#mode', 'BUY');
+      await page.click('#quote-open');
+      await page.fill('#quote-school', 'Colegio de prueba');
+      assert.match(await page.locator('#quote-snapshot').innerText(), new RegExp(program));
+      const pending = page.waitForEvent('download');
+      await page.click('#quote-download');
+      const saved = await pending;
+      const pdf = await PDFDocument.load(fs.readFileSync(await saved.path()));
+      assert.equal(pdf.getPageCount(), 2, tech);
+      assert.ok(pdf.getSubject().includes(program), tech);
+      assert.equal(await page.locator('#quote-dialog').isVisible(), false, title);
+    }
   } finally { await page.close(); }
 });

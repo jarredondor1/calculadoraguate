@@ -41,7 +41,27 @@
   <button id="internal-view-button" type="button" aria-pressed="true">Vista interna</button>
   <button id="client-view-button" type="button" aria-pressed="false">Vista para la institución</button>
   <button id="presentation-mode-button" type="button" aria-pressed="false" hidden>Ocultar vista interna</button>
+  <button id="quote-open" class="quote-open" type="button">Crear cotización PDF <span aria-hidden="true">↗</span></button>
 </nav>
+<dialog id="quote-dialog" class="quote-dialog" aria-labelledby="quote-title">
+  <form id="quote-form" class="quote-form">
+    <div class="quote-heading"><div><span class="client-overline">PROPUESTA PARA CENTROS EDUCATIVOS</span><h2 id="quote-title">Crear cotización</h2><p>Personaliza la propuesta y descárgala en PDF. Los importes se toman del escenario actual.</p></div><button type="button" id="quote-close" class="quote-close" aria-label="Cerrar">×</button></div>
+    <div class="quote-form-grid">
+      <label class="quote-field quote-wide"><span class="quote-field-label">Institución educativa <em>*</em></span><input id="quote-school" name="school" required maxlength="90" autocomplete="organization" placeholder="Nombre del centro educativo"></label>
+      <label class="quote-field">Persona de contacto <input id="quote-contact" name="contact" maxlength="80" placeholder="Nombre y apellido"></label>
+      <label class="quote-field">Correo de contacto <input id="quote-email" name="email" type="email" maxlength="100" autocomplete="email" placeholder="correo@colegio.edu.gt"></label>
+      <label class="quote-field">Ubicación <input id="quote-location" name="location" maxlength="80" placeholder="Municipio y departamento"></label>
+      <label class="quote-field">Vigencia de la cotización <select id="quote-validity" name="validity"><option value="15">15 días</option><option value="30" selected>30 días</option><option value="45">45 días</option></select></label>
+      <label class="quote-field quote-wide">Modalidad a cotizar <select id="quote-mode" name="mode"><option value="BUY">INTEGRA · compra</option><option value="RENT">FLEX · renta</option><option value="EVO8">EVOLUCIONA 8</option><option value="EVO16">EVOLUCIONA 16</option></select></label>
+      <div id="quote-snapshot" class="quote-snapshot quote-wide" aria-live="polite"></div>
+      <label class="quote-check quote-wide"><input id="quote-projection" name="projection" type="checkbox"><span>Agregar estimación opcional de cobro por estudiante para la institución</span></label>
+      <label class="quote-field quote-wide">Nota para la institución <textarea id="quote-note" name="note" maxlength="280" rows="2" placeholder="Opcional: grados, fecha de inicio o necesidades del centro educativo"></textarea></label>
+    </div>
+    <p class="quote-privacy">La información se usa en esta computadora para crear el PDF; no se envía a un servidor.</p>
+    <div id="quote-error" class="quote-error" role="alert" hidden></div>
+    <div class="quote-actions"><button id="quote-cancel" class="quote-cancel" type="button">Cancelar</button><button id="quote-download" class="quote-download" type="submit">Descargar PDF</button></div>
+  </form>
+</dialog>
 <div class="layout">
 <aside class="panel controls">
   <div class="title-row"><h2>Configurar escenario</h2><span class="badge">En vivo</span></div>
@@ -82,11 +102,11 @@
     <div class="socrates-feature">
       <div class="socrates-copy">
         <span class="socrates-kicker"><span aria-hidden="true"></span> NUESTRA PLATAFORMA DE APRENDIZAJE</span>
-        <h3>El aprendizaje sigue en <em>Socrates Aprende.</em></h3>
-        <p>Una mirada a las semanas temáticas, lecciones de distintas materias y actividades interactivas que acompañan la experiencia de aprender.</p>
+        <h3 id="socrates-title">El aprendizaje sigue en <em>Socrates Aprende.</em></h3>
+        <p id="socrates-description">Una mirada a las semanas temáticas, lecciones de distintas materias y actividades interactivas que acompañan la experiencia de aprender.</p>
         <div class="socrates-points"><span>Explorar</span><span>Practicar</span><span>Descubrir</span></div>
         <a class="socrates-link" href="https://socrates-439aa.web.app/#/semana/s01" target="_blank" rel="noopener noreferrer">Explorar Socrates <span aria-hidden="true">↗</span><span class="sr-only"> (abre en una pestaña nueva)</span></a>
-        <p class="socrates-availability">Muestra actual: sexto primaria. Otros grados aparecen como próximos en la plataforma.</p>
+        <p id="socrates-availability" class="socrates-availability">Muestra actual: sexto primaria. Otros grados aparecen como próximos en la plataforma.</p>
       </div>
       <div class="socrates-demo">
         <div class="socrates-browser"><div class="socrates-browser-bar"><span aria-hidden="true"><i></i><i></i><i></i></span><span>Un vistazo a Socrates</span><span aria-hidden="true">✦</span></div><img id="socrates-preview" src="assets/platform/socrates-preview.webp" alt="Capturas de Socrates Aprende: una semana temática, sus lecciones y una actividad interactiva de matemáticas" width="960" height="540" loading="lazy"></div>
@@ -113,11 +133,11 @@ const ceil5=n=>Math.ceil(n/5)*5;
 const $=id=>document.getElementById(id);
 const techs={
 'TaleBot':{name:'Robótica para pequeños',level:'Preprimaria',cost:1400,residual:200,projects:6,maint:140,sim:2,buy:2000,rent:575,evol8:14700,evol16:17000,market:'Referencia orientativa: en soluciones educativas comparables, el hardware suele venderse por separado de contenido, capacitación y soporte.'},
-'Robot Master':{name:'Robótica para primaria',level:'1ro–3ro primaria',cost:1700,residual:248,projects:6,maint:170,sim:2,buy:2450,rent:700,evol8:17900,evol16:20600,market:'Referencia orientativa: en robótica escolar, el costo final normalmente aumenta cuando se agregan formación docente, actividades, plataforma y soporte.'},
+'Robot Master':{name:'Robótica para primaria',level:'1ro–3ro primaria',cost:1700,residual:248,projects:6,maint:170,sim:3,buy:2450,rent:700,evol8:17900,evol16:20600,market:'Referencia orientativa: en robótica escolar, el costo final normalmente aumenta cuando se agregan formación docente, actividades, plataforma y soporte.'},
 'Spike':{name:'Robótica para grandes',level:'4to primaria–bachillerato',cost:5700,residual:500,projects:10,maint:570,sim:3,buy:8200,rent:1850,evol8:59900,evol16:68900,market:'Referencia orientativa: el precio de mercado del kit por sí solo no incluye necesariamente planificación, integración curricular, plataforma, acompañamiento o mantenimiento.'},
-'Snap':{name:'Electrónica',level:'Electrónica / primaria-secundaria',cost:1200,residual:100,projects:8,maint:180,sim:2,buy:1750,rent:550,evol8:13300,evol16:15300,market:'Referencia orientativa: los paquetes STEM de aula suelen cotizar hardware y acompañamiento educativo como componentes separados.'},
+'Snap':{name:'Electrónica',level:'Electrónica / primaria-secundaria',cost:1200,residual:100,projects:8,maint:180,sim:3,buy:1750,rent:550,evol8:13300,evol16:15300,market:'Referencia orientativa: los paquetes STEM de aula suelen cotizar hardware y acompañamiento educativo como componentes separados.'},
 'Drones':{name:'Drones Educativos',level:'Tecnología aplicada',cost:2900,residual:0,projects:10,maint:290,sim:2,buy:4150,rent:1000,evol8:30500,evol16:35100,market:'Referencia orientativa: los programas de drones educativos normalmente requieren hardware, formación, actividades y soporte para operación en aula.'},
-'Meta':{name:'Meta Quest 3S',level:'VR / transversal',cost:3860,residual:700,projects:12,maint:772,sim:2,buy:5550,rent:1750,evol8:44400,evol16:51100,market:'Referencia orientativa: soluciones VR educativas suelen incorporar además del visor, plataforma, contenidos, capacitación y soporte.'}
+'Meta':{name:'Realidad virtual educativa',level:'Tecnología transversal',cost:3860,residual:700,projects:12,maint:772,sim:3,buy:5550,rent:1750,evol8:44400,evol16:51100,market:'Referencia orientativa: soluciones VR educativas suelen incorporar además del visor, plataforma, contenidos, capacitación y soporte.'}
 };
 Object.entries(techs).forEach(([k,t])=>{let o=document.createElement('option');o.value=k;o.textContent=t.name;$('tech').appendChild(o)});$('tech').value='Spike';
 function financeFee(d,months){if(d===.4)return 0;if(d===.3)return months===16?.05:.03;return months===16?.10:.06}
@@ -128,7 +148,7 @@ function calc(){
  function school(net,gross,months){let perNet=net/students/months,perGross=gross/students/months,exact=perGross/(1-sm),suggested=ceil5(exact),revenue=suggested*students*months,contribution=revenue-gross,schoolMargin=revenue?contribution/revenue:0;return{perNet,perGross,exact,suggested,revenue,contribution,schoolMargin}}
  function finish(key,net,direct,months,unitNet,unitLabel,initialPct=1,installments=0){let tax=net*VAT,gross=net+tax,profit=net-direct,ggMargin=net?profit/net:0,sc=school(net,gross,months),initial=gross*initialPct,installment=installments?(gross-initial)/installments:0;return{key,net,tax,gross,direct,profit,ggMargin,months,unitNet,unitLabel,initial,installment,...sc}}
  const buyNet=t.buy*qty,BUY=finish('BUY',buyNet,costGross+buyNet*.05,8,t.buy,'por equipo');
- const disc={1:0,2:.02,3:.04,4:.05},rentNet=t.rent*qty*bims*(1-disc[bims]),RENT=finish('RENT',rentNet,assetReserve*qty*bims+rentNet*.05,bims*2,t.rent,'por equipo / bimestre');
+ const disc={1:0,2:.02,3:.04,4:.05},rentNet=t.rent*qty*bims*(1-disc[bims]),RENT=finish('RENT',rentNet,assetReserve*qty*bims+rentNet*.05,bims*2,t.rent,'por equipo / bimestre',.2,bims*2);
  function evol(months){let base=(months===8?t.evol8:t.evol16)*(qty/5),fee=financeFee(down,months),net=base*(1+fee),support=t.maint*qty*(months===8?1:2),direct=costGross+support+base*.10;let r=finish(months===8?'EVO8':'EVO16',net,direct,months,base,`programa / ${qty} equipos`,down,months);r.fee=fee;r.basePrice=base;return r}
  return{t,qty,students,bims,down,sm,costNet,costVat,costGross,BUY,RENT,EVO8:evol(8),EVO16:evol(16)}
 }
@@ -141,7 +161,7 @@ function offerCard(k,d,selected){
  k==='RENT'?`La institución paga por flexibilidad y uso temporal; no adquiere los equipos. Descuentos por duración: 0% / 2% / 4% / 5%.`:
  k==='EVO8'?`Propiedad más rápida: acompañamiento durante un ciclo y equipos en propiedad al finalizar.`:
  `Menor presión mensual: dos ciclos de acompañamiento y equipos en propiedad al finalizar. El costo total es mayor por la duración y el capital comprometido.`;
- let payment=(k==='EVO8'||k==='EVO16')?`<div class="row"><span>Ajuste por pago inicial</span><strong>${m.fee?`+${(m.fee*100).toFixed(0)}%`:'Precio preferencial'}</strong></div><div class="row"><span>Pago inicial</span><strong>${fmt(m.initial)}</strong></div><div class="row"><span>${m.months} pagos mensuales</span><strong>${fmt(m.installment)}/mes</strong></div>`:'';
+ let payment=(k==='EVO8'||k==='EVO16')?`<div class="row"><span>Ajuste por pago inicial</span><strong>${m.fee?`+${(m.fee*100).toFixed(0)}%`:'Precio preferencial'}</strong></div><div class="row"><span>Pago inicial</span><strong>${fmt(m.initial)}</strong></div><div class="row"><span>${m.months} pagos mensuales</span><strong>${fmt(m.installment)}/mes</strong></div>`:k==='RENT'?`<div class="row"><span>Pago inicial · 20 %</span><strong>${fmt2(m.initial)}</strong></div><div class="row"><span>${m.months} pagos mensuales</span><strong>${fmt2(m.installment)}/mes</strong></div>`:'';
  return `<article class="offer ${selected===k?'selected':''}"><div class="offer-intro"><div class="type">${x.type}</div><h3>${x.name}</h3><div class="desc">${x.desc}</div><div class="big">${fmt(m.gross)}</div><div class="big-label">Inversión total del escenario con IVA</div></div><div class="offer-details"><div class="row"><span>Referencia</span><strong>${reference}</strong></div><div class="row"><span>Cantidad</span><strong>${d.qty} equipos</strong></div><div class="row"><span>Duración / propiedad</span><strong>${duration}</strong></div><div class="row"><span>Precio total sin IVA</span><strong>${fmt2(m.net)}</strong></div><div class="row"><span>IVA 12%</span><strong>${fmt2(m.tax)}</strong></div><div class="row"><span>Precio total con IVA</span><strong>${fmt2(m.gross)}</strong></div><div class="row"><span>Por estudiante / mes sin IVA</span><strong>${fmt2(m.perNet)}</strong></div><div class="row"><span>Por estudiante / mes con IVA</span><strong>${fmt2(m.perGross)}</strong></div>${payment}<div class="note">${note}</div></div></article>`
 }
 function metric(k,v,em=false){return `<div class="metric ${em?'em':''}"><div class="k">${k}</div><div class="v">${v}</div></div>`}
@@ -154,7 +174,7 @@ function render(){let d=calc(),sel=$('mode').value,keys=sel==='ALL'?['BUY','RENT
  $('schoolProfitTotal').textContent=fmt2(m.contribution); $('schoolIncomeTotal').textContent=fmt2(m.revenue); $('schoolPaidGG').textContent=fmt2(m.gross); $('schoolProfitMonth').textContent=fmt2(m.contribution/m.months); $('schoolProfitStudentMonth').textContent=fmt2(m.contribution/d.students/m.months); $('schoolMarginActual').textContent=pct(m.schoolMargin); $('schoolPeriod').textContent=`${m.months} meses`; $('schoolProfitCaption').textContent=`Con ${d.students} estudiantes, ${d.qty} equipos y ${m.months} meses, usando un cobro sugerido de ${fmt(m.suggested)} por estudiante al mes.`; $('schoolProfitEquation').innerHTML=`<strong>${fmt(m.suggested)}</strong> × ${d.students} estudiantes × ${m.months} meses = <strong>${fmt2(m.revenue)}</strong> de ingresos. Luego: ${fmt2(m.revenue)} − ${fmt2(m.gross)} pagados a GuateGeeks = <strong>${fmt2(m.contribution)}</strong> que permanecería en la institución antes de sus costos internos.`;
  $('ggMetrics').innerHTML=metric('Ingreso GG sin IVA',fmt2(m.net))+metric('Ingreso GG con IVA',fmt2(m.gross))+metric('Ingreso GG / alumno / mes sin IVA',fmt2(m.perNet))+metric('Ingreso GG / alumno / mes con IVA',fmt2(m.perGross))+metric('Costo directo estimado',fmt2(m.direct))+metric('Ganancia bruta GG',fmt2(m.profit),true)+metric('Margen bruto GG',pct(m.ggMargin),true)+metric('Compra equipos sin IVA',fmt2(d.costNet))+metric('Compra equipos con IVA',fmt2(d.costGross));
  $('ggFormula').innerHTML=featured==='RENT'?`En FLEX, ${fmt(d.costGross)} es el valor del activo que GuateGeeks conserva; no se carga completo a un solo contrato. El costo directo del período usa depreciación/reserva + mantenimiento + soporte.${d.bims>=3?' <strong>Para 6–8 meses, si la institución busca continuidad o propiedad, conviene presentar también INTEGRA o EVOLUCIONA.</strong>':''}`:`${fmt2(m.net)} de ingreso sin IVA − ${fmt2(m.direct)} de costo directo estimado = <strong>${fmt2(m.profit)}</strong> de ganancia bruta.`;
- if(featured==='BUY'){$('equipmentText').textContent='Los equipos se venden a la institución y son de su propiedad desde el inicio.';$('supportText').textContent='Implementación y soporte inicial durante 2 meses.'}
+ if(featured==='BUY'){$('equipmentText').textContent='Los equipos se venden a la institución y son de su propiedad desde el inicio.';$('supportText').textContent='Incluye 1 hora de capacitación de uso del equipo. El tiempo adicional se cotiza por separado.'}
  else if(featured==='RENT'){$('equipmentText').textContent=`Los equipos se entregan en renta durante ${d.bims} bimestre${d.bims>1?'s':''} y regresan a GuateGeeks al finalizar.`;$('supportText').textContent=`Soporte y mantenimiento por desgaste normal durante ${m.months} meses.`}
  else {$('equipmentText').textContent=`Los equipos forman parte del programa EVOLUCIONA y quedan en propiedad de la institución al finalizar los ${m.months} meses y completar el contrato.`;$('supportText').textContent=`Acompañamiento, seguimiento y mantenimiento por desgaste normal durante ${m.months} meses.`}
  $('marketTitle').textContent=`${d.t.name} · contexto de mercado`;$('marketText').textContent=d.t.market;
@@ -194,4 +214,6 @@ SAVED_FIELDS.forEach(id=>{
 initClientView();
 render();
 </script>
+<script src="assets/vendor/pdf-lib.min.js"></script>
+<script src="quote.js"></script>
 </body></html>
