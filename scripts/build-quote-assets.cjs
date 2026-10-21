@@ -4,7 +4,7 @@ const path = require('node:path');
 const root = path.resolve(__dirname, '..');
 const files = {
   logo: 'guategeeks-logo.png',
-  spikeProduct: 'spike-product.jpg',
+  spikeProduct: 'spike-device-illustrative.jpg',
   robotMasterProduct: 'robot-master-product.jpg',
   snapProduct: 'snap-device-illustrative.jpg',
   talebotProduct: 'talebot-product.jpg',

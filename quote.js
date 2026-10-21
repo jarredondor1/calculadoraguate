@@ -168,9 +168,8 @@
     };
     const v = visual[quote.tech];
     if (!v) throw new Error('Tecnología no reconocida para el PDF.');
-    const illustrativeProduct = ['Snap', 'Meta', 'Drones'].includes(quote.tech);
-    const productCaption = illustrativeProduct ? 'Equipo ilustrativo; modelo por confirmar' :
-      quote.tech === 'Spike' ? 'Imagen de referencia · I. Khlebnikov' : 'Referencia visual del equipo';
+    const illustrativeProduct = ['Spike', 'Snap', 'Meta', 'Drones'].includes(quote.tech);
+    const productCaption = illustrativeProduct ? 'Equipo ilustrativo; modelo por confirmar' : 'Referencia visual del equipo';
 
     const p1 = doc.addPage([W, H]);
     header(p1, 1);
