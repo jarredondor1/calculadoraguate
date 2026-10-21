@@ -11,12 +11,12 @@
   const dateText = date => new Intl.DateTimeFormat('es-GT', {day: '2-digit', month: 'long', year: 'numeric'}).format(date);
   const slug = value => value.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '').slice(0, 45) || 'institucion';
   const visual = {
-    Spike: {product: 'spikeProduct', classroom: 'spikeClass', idea: 'Un robot que interpreta su entorno', verbs: ['Explora', 'Construye', 'Programa']},
-    'Robot Master': {product: 'robotMasterProduct', classroom: 'robotMasterClass', idea: 'Un robot con movimiento y sensores', verbs: ['Explora', 'Ensambla', 'Prueba']},
-    Snap: {product: 'snapProduct', classroom: 'snapClass', idea: 'Un circuito que cobra vida', verbs: ['Investiga', 'Conecta', 'Comprueba']},
-    TaleBot: {product: 'talebotProduct', classroom: 'talebotClass', idea: 'Un recorrido con instrucciones', verbs: ['Imagina', 'Ordena', 'Descubre']},
-    Meta: {product: 'vrProduct', classroom: 'vrClass', idea: 'Una experiencia inmersiva', verbs: ['Observa', 'Diseña', 'Explora']},
-    Drones: {product: 'droneProduct', classroom: 'ideaClass', idea: 'Una misión de vuelo segura', verbs: ['Planifica', 'Programa', 'Vuela']}
+    Spike: {product: 'spikeProduct', classroom: 'spikeClass', design: 'designClass', level: '4.º primaria a bachillerato', idea: 'Un robot que interpreta su entorno', verbs: ['Explora', 'Construye', 'Programa']},
+    'Robot Master': {product: 'robotMasterProduct', classroom: 'robotMasterClass', design: 'robotMasterDesign', level: '1.º a 3.º primaria', idea: 'Un robot con movimiento y sensores', verbs: ['Explora', 'Ensambla', 'Prueba']},
+    Snap: {product: 'snapProduct', classroom: 'snapClass', design: 'snapDesign', level: 'primaria y secundaria', idea: 'Un circuito que cobra vida', verbs: ['Investiga', 'Conecta', 'Comprueba']},
+    TaleBot: {product: 'talebotProduct', classroom: 'talebotClass', design: 'talebotDesign', level: 'preprimaria', idea: 'Un recorrido con instrucciones', verbs: ['Imagina', 'Ordena', 'Descubre']},
+    Meta: {product: 'vrProduct', classroom: 'vrClass', design: 'vrDesign', level: 'tecnología transversal', idea: 'Una experiencia inmersiva', verbs: ['Observa', 'Diseña', 'Explora']},
+    Drones: {product: 'droneProduct', classroom: 'dronesClass', design: 'dronesDesign', level: 'tecnología aplicada', idea: 'Una misión de vuelo segura', verbs: ['Planifica', 'Programa', 'Vuela']}
   };
 
   function showError(message) {
@@ -92,8 +92,7 @@
     const c = {
       cyan: rgbHex('#138cb1'), dark: rgbHex('#184455'), ink: rgbHex('#263746'),
       gray: rgbHex('#66717a'), pale: rgbHex('#f2f8fa'), paleBlue: rgbHex('#e3f3f8'),
-      border: rgbHex('#d8e5e9'), white: rgb(1, 1, 1), coral: rgbHex('#ed8660'),
-      cream: rgbHex('#fff6ed'), green: rgbHex('#17836e'), paleGreen: rgbHex('#e9f5f1')
+      border: rgbHex('#d8e5e9'), white: rgb(1, 1, 1)
     };
     const textSafe = value => [...String(value ?? '')].map(ch => {
       if (ch === '\n') return ch;
@@ -108,6 +107,10 @@
       page.drawLine({start: {x, y: H - top}, end: {x: x + width, y: H - top}, color, thickness});
     const put = (page, value, x, top, size = 11, fill = c.ink, font = regular) =>
       page.drawText(textSafe(value), {x, y: H - top - size, size, font, color: fill});
+    const putRight = (page, value, right, top, size = 11, fill = c.ink, font = regular) => {
+      const content = textSafe(value);
+      put(page, content, right - font.widthOfTextAtSize(content, size), top, size, fill, font);
+    };
     const putFit = (page, value, x, top, width, size = 11, minSize = 7, fill = c.ink, font = regular) => {
       const content = textSafe(value);
       while (size > minSize && font.widthOfTextAtSize(content, size) > width) size -= .25;
@@ -165,130 +168,154 @@
     };
     const v = visual[quote.tech];
     if (!v) throw new Error('Tecnología no reconocida para el PDF.');
-    const productCaption = quote.tech === 'Drones' ? 'Imagen conceptual del dron' :
-      quote.tech === 'Spike' ? 'Modelo: RoboRiseIT / I. Khlebnikov' : 'Referencia visual del equipo';
+    const illustrativeProduct = ['Snap', 'Meta', 'Drones'].includes(quote.tech);
+    const productCaption = illustrativeProduct ? 'Equipo ilustrativo; modelo por confirmar' :
+      quote.tech === 'Spike' ? 'Imagen de referencia · I. Khlebnikov' : 'Referencia visual del equipo';
 
     const p1 = doc.addPage([W, H]);
     header(p1, 1);
-    putFit(p1, `PROPUESTA PARA ${quote.school}`.toUpperCase(), M, 113, CW, 8.5, 7, c.cyan, bold);
-    put(p1, 'Crear es aprender', M, 134, 27, c.dark, bold);
-    put(p1, 'haciendo.', M, 168, 27, c.cyan, bold);
-    paragraph(p1, `${quote.program} para ${quote.level}. Una experiencia donde el alumnado imagina, diseña y crea con tecnología.`, M, 210, CW, 10.5, 15, c.gray, regular, 2);
+    eyebrow(p1, 'PROPUESTA PERSONALIZADA', M, 113);
+    put(p1, 'Crear es aprender', M, 132, 27, c.dark, bold);
+    put(p1, 'haciendo.', M, 165, 27, c.cyan, bold);
+    putFit(p1, `Para ${quote.school}`, M, 204, CW, 13, 9, c.dark, bold);
+    paragraph(p1, `${quote.program} · ${v.level}. Un programa para imaginar, diseñar y crear con tecnología.`, M, 226, CW, 10.2, 14, c.gray, regular, 2);
     const cycle = quote.key === 'EVO16' ? '2 ciclos de 8 meses' : quote.key === 'EVO8' ? '1 ciclo de 8 meses' : quote.key === 'RENT' ? `${quote.offer.months} meses de programa` : 'Compra directa';
-    box(p1, M, 250, CW, 25, c.paleBlue);
-    putFit(p1, `${modality[quote.key]}   ·   ${quote.quantity} equipos   ·   ${quote.students} estudiantes   ·   ${cycle}`, M + 11, 256, CW - 22, 9.1, 7.2, c.dark, bold);
-    await imageBox(p1, v.classroom, M, 287, 324, 157);
-    await imageBox(p1, v.product, M + 334, 287, CW - 334, 157, c.white);
-    box(p1, M, 444, CW, 17, c.white);
-    put(p1, 'Imagen conceptual del aprendizaje', M, 448, 7.3, c.gray);
-    put(p1, productCaption, M + 334, 448, 7.3, c.gray);
+    box(p1, M, 263, CW, 27, c.paleBlue);
+    putFit(p1, `${modality[quote.key]}   ·   ${quote.quantity} equipos   ·   ${quote.students} estudiantes   ·   ${cycle}`, M + 11, 270, CW - 22, 9.3, 7.5, c.dark, bold);
+    await imageBox(p1, v.classroom, M, 300, 324, 151);
+    await imageBox(p1, v.product, M + 334, 300, CW - 334, 151, c.white);
+    put(p1, 'Imagen conceptual del aprendizaje', M, 455, 8, c.gray);
+    putFit(p1, productCaption, M + 334, 455, CW - 334, 8, 7.2, c.gray);
 
-    box(p1, M, 473, CW, 220, c.white, 0, c.border);
-    box(p1, M, 473, 5, 220, c.cyan);
-    eyebrow(p1, 'INVERSIÓN DEL PROGRAMA', M + 18, 489);
-    put(p1, modality[quote.key], M + 18, 504, 12, c.dark, bold);
-    put(p1, 'Total sin IVA', M + 18, 527, 9.5, c.gray);
-    put(p1, money(quote.offer.net), M + 18, 543, 29, c.dark, bold);
-    rule(p1, M + 18, 584, CW - 36);
-    put(p1, 'IVA (12 %)', M + 18, 591, 9, c.gray);
-    put(p1, money(quote.offer.tax), M + 122, 591, 9, c.gray, bold);
-    put(p1, 'Total con IVA', M + 278, 591, 9, c.gray);
-    put(p1, money(quote.offer.gross), M + 369, 591, 9, c.dark, bold);
-    rule(p1, M + 18, 614, CW - 36);
+    box(p1, M, 481, CW, 214, c.white, 0, c.border);
+    box(p1, M, 481, 5, 214, c.cyan);
+    eyebrow(p1, '01 / INVERSIÓN Y FORMA DE PAGO', M + 18, 496);
+    put(p1, modality[quote.key], M + 18, 511, 11, c.dark, bold);
+    put(p1, 'Precio total sin IVA', M + 18, 532, 10, c.gray);
+    putFit(p1, money(quote.offer.net), M + 18, 548, CW - 40, 29, 20, c.dark, bold);
+    rule(p1, M + 18, 589, CW - 36);
+    put(p1, 'IVA (12 %)', M + 18, 597, 10, c.gray);
+    putRight(p1, money(quote.offer.tax), M + 211, 597, 10, c.dark, bold);
+    put(p1, 'Total con IVA', M + 277, 597, 10, c.gray);
+    putRight(p1, money(quote.offer.gross), M + CW - 18, 597, 10, c.dark, bold);
+    rule(p1, M + 18, 621, CW - 36);
+    const initialPercent = Math.round(quote.offer.initial / quote.offer.gross * 100);
     const payment = quote.key === 'BUY'
-      ? [['PAGO', 'Compra directa'], ['PLAZO', 'Pago de contado'], ['EQUIPO', 'Propiedad inmediata']]
-      : [['AL INICIAR · CON IVA', money(quote.offer.initial)],
-        [`${quote.offer.months} CUOTAS · CON IVA`, money(quote.offer.installment)],
+      ? [['FORMA DE PAGO', 'Compra directa'], ['CUOTAS', 'No aplica'], ['PROPIEDAD', 'Desde la compra']]
+      : [[`PAGO INICIAL · ${initialPercent} %`, money(quote.offer.initial)],
+        [`${quote.offer.months} PAGOS MENSUALES`, money(quote.offer.installment)],
         ['AL FINALIZAR', quote.key === 'RENT' ? 'Se devuelve' : 'Equipo propio']];
     payment.forEach(([heading, value], i) => {
       const x = M + 18 + i * 165;
-      box(p1, x, 627, 156, 51, i === 2 ? c.paleBlue : c.pale);
-      put(p1, heading, x + 8, 636, 7.1, c.gray, bold);
-      paragraph(p1, value, x + 8, 650, 140, 10.4, 12.5, c.dark, bold, 2);
+      box(p1, x, 632, 156, 50, i === 2 ? c.paleBlue : c.pale);
+      put(p1, heading, x + 8, 639, 7.8, c.gray, bold);
+      paragraph(p1, value, x + 8, 653, 140, 10.4, 12.5, c.dark, bold, 2);
     });
-    put(p1, `Emitida: ${dateText(quote.issued)}  ·  Vigente hasta: ${dateText(quote.expires)}`, M, 711, 8.5, c.gray);
+    put(p1, `Emitida: ${dateText(quote.issued)}  ·  Vigente hasta: ${dateText(quote.expires)}`, M, 712, 9, c.gray);
     const contact = [quote.contact, quote.email, quote.location].filter(Boolean).join('  ·  ');
-    if (contact) paragraph(p1, `Para: ${contact}`, M, 729, CW, 8.5, 12, c.gray, regular, 2);
-    put(p1, 'Importes en quetzales. El alcance y las condiciones finales se confirman con GuateGeeks.', M, 761, 7.8, c.gray);
+    if (contact) paragraph(p1, `Contacto: ${contact}`, M, 730, CW, 9, 12, c.gray, regular, 2);
+    put(p1, 'Valores en quetzales. Alcance y condiciones sujetos a confirmación comercial.', M, 763, 8, c.gray);
     footer(p1, 1);
 
     const p2 = doc.addPage([W, H]);
     header(p2, 2);
-    eyebrow(p2, 'EXPERIENCIA EDUCATIVA', M, 113);
-    put(p2, 'Del primer reto a una', M, 133, 25, c.dark, bold);
-    put(p2, 'creación propia.', M, 164, 25, c.cyan, bold);
-    paragraph(p2, `${quote.program}: ${v.idea.toLowerCase()}. Un camino guiado para que cada equipo explore, construya y comparta lo aprendido.`, M, 203, CW, 10.1, 15, c.gray, regular, 2);
+    eyebrow(p2, '02 / EXPERIENCIA EDUCATIVA', M, 113);
+    put(p2, 'Del primer reto a una', M, 132, 25, c.dark, bold);
+    put(p2, 'creación propia.', M, 163, 25, c.cyan, bold);
+    paragraph(p2, `${quote.program}: ${v.idea.toLowerCase()}. El grupo explora, construye y comparte lo aprendido.`, M, 204, CW, 10.2, 15, c.gray, regular, 2);
     const gap = 9, cardW = (CW - gap * 2) / 3;
     const cards = [
       {image: v.classroom, title: v.verbs[0]},
-      {image: 'designClass', title: v.verbs[1]},
+      {image: v.design, title: v.verbs[1]},
       {image: v.product, title: v.verbs[2]}
     ];
+    const isBuy = quote.key === 'BUY';
+    const visualHeight = isBuy ? 148 : 108;
     for (let i = 0; i < cards.length; i++) {
       const x = M + i * (cardW + gap);
-      box(p2, x, 251, cardW, 169, c.white, 0, c.border);
-      await imageBox(p2, cards[i].image, x + 1, 252, cardW - 2, 125, i === 2 ? c.white : c.pale);
-      put(p2, `0${i + 1}  ${cards[i].title}`, x + 10, 384, 11, c.dark, bold);
-      put(p2, i === 2 ? (quote.tech === 'Drones' ? 'Imagen conceptual' : 'Equipo de referencia') : 'Imagen conceptual', x + 10, 402, 7.5, c.gray);
+      box(p2, x, 244, cardW, visualHeight + 45, c.white, 0, c.border);
+      await imageBox(p2, cards[i].image, x + 1, 245, cardW - 2, visualHeight, i === 2 ? c.white : c.pale);
+      put(p2, `0${i + 1}  ${cards[i].title}`, x + 10, 252 + visualHeight, 11, c.dark, bold);
+      put(p2, i === 2 ? (illustrativeProduct ? 'Equipo ilustrativo' : 'Equipo de referencia') : 'Imagen conceptual', x + 10, 272 + visualHeight, 8, c.gray);
     }
-    eyebrow(p2, `QUÉ INCLUYE ${modality[quote.key]}`, M, 441);
-    const included = quote.key === 'BUY' ? [
-      ['Equipamiento educativo', 'Propiedad del colegio desde la compra.'],
-      ['Puesta en marcha', 'Orientación inicial para usar el equipo en el aula.'],
-      ['Capacitación de uso', 'Incluye 1 hora de formación sobre el equipo.'],
-      ['Tiempo adicional', 'Las horas extra se cotizan por separado.']
+    eyebrow(p2, `QUÉ RECIBE LA INSTITUCIÓN · ${modality[quote.key]}`, M, isBuy ? 455 : 415);
+    const included = isBuy ? [
+      ['Equipamiento educativo', `${quote.quantity} equipos para el aula.`],
+      ['Puesta en marcha', 'Orientación para comenzar a usarlos.'],
+      ['Capacitación de uso', 'Una hora de formación sobre el equipo.'],
+      ['Formación adicional', 'Las horas extra se cotizan aparte.']
     ] : [
-      ['Equipamiento educativo', quote.key === 'RENT' ? 'Uso temporal; se devuelve al finalizar.' : 'Queda en el colegio al completar el programa.'],
+      ['Equipamiento educativo', `${quote.quantity} equipos para desarrollar el programa.`],
       ['Planificación docente', 'Actividades alineadas con el CNB.'],
-      ['Capacitación', 'Formación para facilitar actividades con el equipo.'],
-      ['Integración tecnológica', 'Orientación para llevar la experiencia al aula.'],
-      ['Socrates Aprende', 'Recursos para docentes y contenido según fase.'],
-      ['Soporte', 'Acompañamiento durante el programa.']
+      ['Capacitación docente', 'Formación para trabajar con los equipos.'],
+      ['Integración tecnológica', 'Orientación para llevar la tecnología al aula.'],
+      ['Socrates Aprende', 'Recursos docentes y contenido según grado.'],
+      ['Soporte y seguimiento', `Acompañamiento durante ${quote.offer.months} meses.`]
     ];
-    const serviceH = quote.key === 'BUY' ? 83 : 69;
+    const serviceH = isBuy ? 68 : 66;
     included.forEach(([title, description], i) => {
       const col = i % 2, row = Math.floor(i / 2);
-      const x = M + col * 264, top = 462 + row * (serviceH + 7);
+      const x = M + col * 264, top = (isBuy ? 475 : 435) + row * (serviceH + 6);
       box(p2, x, top, 257, serviceH, c.white, 0, c.border);
-      box(p2, x + 10, top + 13, 18, 18, c.paleBlue);
-      put(p2, String(i + 1).padStart(2, '0'), x + 14, top + 16, 8, c.cyan, bold);
-      put(p2, title, x + 37, top + 12, 10.2, c.dark, bold);
-      paragraph(p2, description, x + 11, top + 35, 231, 8.8, 12.5, c.gray, regular, 3);
+      box(p2, x + 10, top + 11, 18, 18, c.paleBlue);
+      put(p2, String(i + 1).padStart(2, '0'), x + 14, top + 14, 8, c.cyan, bold);
+      putFit(p2, title, x + 37, top + 10, 208, 10.5, 9, c.dark, bold);
+      paragraph(p2, description, x + 11, top + 32, 231, 9.2, 12.5, c.gray, regular, 2);
     });
-    if (quote.key === 'BUY') {
-      box(p2, M, 654, CW, 79, c.paleBlue);
-      eyebrow(p2, 'ACCESO A SOCRATES APRENDE', M + 12, 666);
-      paragraph(p2, 'No está incluido en INTEGRA. Puede conversarse por separado con GuateGeeks.', M + 12, 684, CW - 24, 9.5, 14, c.dark, regular, 2);
-    } else {
-      box(p2, M, 692, CW, 65, c.paleBlue);
-      eyebrow(p2, 'SOCRATES APRENDE', M + 12, 701);
-      paragraph(p2, 'Contenido estudiantil disponible hoy para 6.º primaria; se ampliará gradualmente a 5.º. Hay recursos docentes para los programas. El tiempo de acceso se acuerda con GuateGeeks.', M + 12, 717, CW - 24, 8.3, 11.8, c.dark, regular, 3);
-    }
-    if (quote.note) paragraph(p2, `Nota: ${quote.note}`, M, quote.key === 'BUY' ? 743 : 760, CW, 7.2, 8, c.gray, regular, 3);
+    const ownership = quote.key === 'BUY' ? 'El colegio adquiere los equipos desde el inicio.' :
+      quote.key === 'RENT' ? 'Los equipos se devuelven a GuateGeeks al finalizar.' :
+      quote.key === 'EVO16' ? 'Al completar los 2 ciclos de 8 meses, los equipos quedan en el colegio.' :
+      'Al completar el ciclo de 8 meses, los equipos quedan en el colegio.';
+    const platform = quote.key === 'BUY' ? 'Socrates Aprende no está incluido. Se puede cotizar por separado.' :
+      quote.tech === 'TaleBot' || quote.tech === 'Robot Master'
+        ? 'Para esta etapa hay recursos docentes. Contenido estudiantil disponible hoy para 6.º primaria y, gradualmente, 5.º. Vigencia acordada con GuateGeeks.'
+        : 'Contenido estudiantil disponible hoy para 6.º primaria y, gradualmente, 5.º. Incluye recursos docentes. Vigencia acordada con GuateGeeks.';
+    const closingTop = isBuy ? 635 : 658;
+    box(p2, M, closingTop, CW, 79, c.paleBlue);
+    eyebrow(p2, 'DESTINO DEL EQUIPO', M + 12, closingTop + 11);
+    paragraph(p2, ownership, M + 12, closingTop + 28, 203, 9.2, 12.5, c.dark, regular, 4);
+    box(p2, M + 226, closingTop + 12, 1, 55, c.border);
+    eyebrow(p2, 'SOCRATES APRENDE', M + 240, closingTop + 11);
+    paragraph(p2, platform, M + 240, closingTop + 28, CW - 252, 8.8, 11.5, c.dark, regular, 4);
+    if (quote.note) paragraph(p2, `Nota: ${quote.note}`, M, isBuy ? 725 : 746, CW, 8.2, 9, c.gray, regular, 4);
     footer(p2, 2);
 
     if (quote.projection) {
       const p3 = doc.addPage([W, H]);
       header(p3, 3);
-      eyebrow(p3, 'PROYECCIÓN PARA LA INSTITUCIÓN', M, 117);
-      put(p3, 'Una cuota clara para', M, 140, 26, c.dark, bold);
-      put(p3, 'tomar decisiones.', M, 172, 26, c.cyan, bold);
-      paragraph(p3, `Referencia para ${quote.students} estudiantes durante ${quote.offer.months} meses con ${modality[quote.key]}. El colegio decide el cobro final a sus familias.`, M, 217, CW, 10.3, 16, c.gray, regular, 3);
-      box(p3, M, 278, CW, 112, c.paleBlue);
-      eyebrow(p3, 'COBRO MENSUAL SUGERIDO POR ESTUDIANTE', M + 18, 297);
-      put(p3, money(quote.offer.suggested), M + 18, 321, 31, c.dark, bold);
-      put(p3, 'Cada estudiante  ·  cada mes', M + 18, 366, 9, c.gray);
-      box(p3, M, 407, CW, 106, c.pale);
-      eyebrow(p3, 'INGRESOS ESTIMADOS DEL PROGRAMA', M + 18, 423);
-      put(p3, money(quote.offer.revenue), M + 18, 447, 25, c.dark, bold);
-      put(p3, `${quote.students} estudiantes  ×  ${quote.offer.months} meses`, M + 18, 485, 9, c.gray);
-      box(p3, M, 529, CW, 114, c.paleGreen);
-      eyebrow(p3, 'DIFERENCIA BRUTA ESTIMADA', M + 18, 546, c.green);
-      put(p3, money(quote.offer.contribution), M + 18, 571, 28, c.green, bold);
-      put(p3, 'Después de pagar el programa a GuateGeeks; antes de gastos propios.', M + 18, 615, 9, c.gray);
-      rule(p3, M, 668, CW);
-      put(p3, `${money(quote.offer.revenue)}  -  ${money(quote.offer.gross)} con IVA  =  ${money(quote.offer.contribution)}`, M, 681, 12, c.dark, bold);
-      paragraph(p3, 'Proyección orientativa. No descuenta docentes, administración, cobros, infraestructura ni otros gastos de la institución; no representa utilidad neta.', M, 718, CW, 9, 13.5, c.gray, regular, 3);
+      eyebrow(p3, '03 / PROYECCIÓN INSTITUCIONAL', M, 117);
+      put(p3, 'Cuota e ingresos', M, 139, 26, c.dark, bold);
+      put(p3, 'del programa.', M, 171, 26, c.cyan, bold);
+      paragraph(p3, `Escenario con ${quote.students} estudiantes durante ${quote.offer.months} meses de ${modality[quote.key]}. La institución decide cuánto cobrar a cada familia.`, M, 215, CW, 10.4, 16, c.gray, regular, 3);
+      const perStudent = quote.offer.gross / quote.students / quote.offer.months;
+      const monthlyIncome = quote.offer.suggested * quote.students;
+      const half = (CW - 10) / 2;
+      box(p3, M, 275, half, 130, c.paleBlue);
+      eyebrow(p3, 'COBRO SUGERIDO', M + 15, 289);
+      putFit(p3, money(quote.offer.suggested), M + 15, 315, half - 30, 26, 20, c.dark, bold);
+      paragraph(p3, 'Por estudiante cada mes. Es una referencia; el colegio fija su cuota final.', M + 15, 360, half - 30, 9.2, 13, c.gray, regular, 3);
+      box(p3, M + half + 10, 275, half, 130, c.pale);
+      eyebrow(p3, 'INVERSIÓN EQUIVALENTE', M + half + 25, 289);
+      putFit(p3, money(perStudent), M + half + 25, 315, half - 30, 26, 20, c.dark, bold);
+      paragraph(p3, 'Costo total del programa con IVA, distribuido por estudiante y mes.', M + half + 25, 360, half - 30, 9.2, 13, c.gray, regular, 3);
+
+      eyebrow(p3, 'ASÍ SE FORMA EL RESULTADO', M, 428);
+      const rows = [
+        ['Ingreso mensual estimado', money(monthlyIncome)],
+        [`Ingreso total · ${quote.offer.months} meses`, money(quote.offer.revenue)],
+        ['Pago total a GuateGeeks · con IVA', money(quote.offer.gross)]
+      ];
+      rows.forEach(([title, value], index) => {
+        const top = 451 + index * 38;
+        box(p3, M, top, CW, 38, index % 2 ? c.white : c.pale);
+        put(p3, title, M + 15, top + 11, 10.1, c.ink);
+        putRight(p3, value, M + CW - 15, top + 9, 12.5, c.dark, bold);
+      });
+      box(p3, M, 578, CW, 100, c.dark);
+      eyebrow(p3, 'DIFERENCIA BRUTA ESTIMADA', M + 17, 593, c.white);
+      putFit(p3, money(quote.offer.contribution), M + 17, 614, CW - 34, 28, 20, c.white, bold);
+      put(p3, 'Después de pagar a GuateGeeks; antes de los gastos propios del colegio.', M + 17, 652, 9, c.white);
+      paragraph(p3, 'Cálculo: cuota sugerida × estudiantes × meses - pago total del programa con IVA. Es una proyección orientativa; no descuenta docentes, administración, infraestructura, cobros ni impuestos propios. No representa utilidad neta.', M, 704, CW, 9.2, 14, c.gray, regular, 4);
       footer(p3, 3);
     }
     return doc.save();
