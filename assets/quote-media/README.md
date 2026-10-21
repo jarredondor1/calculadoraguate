@@ -6,6 +6,7 @@ Las siguientes imágenes fueron creadas con la herramienta integrada `image_gen`
 
 | Archivo | Prompt de producción |
 | --- | --- |
+| `spike-programming.jpg` | Tres estudiantes guatemaltecos de secundaria programan en una computadora de bloques un robot modular de colores cian, amarillo y morado, con el equipo y el código visibles en una misma escena; fotografía editorial, sin logos ni texto legible. |
 | `talebot-design.jpg` | Tres niños guatemaltecos de preprimaria planifican una ruta en cuadrícula con tarjetas de dirección y un pequeño robot blanco; fotografía editorial, aula natural, sin marcas ni texto. |
 | `robot-master-design.jpg` | Niños guatemaltecos de 7 a 9 años arman en equipo un robot modular de piezas verdes, amarillas y azules, acompañados por docente; fotografía editorial, sin marcas ni texto. |
 | `vr-design.jpg` | Estudiantes guatemaltecos diseñan en equipo una escena inmersiva en computadora con visor VR y apoyo docente; fotografía editorial, sin marcas ni texto. |

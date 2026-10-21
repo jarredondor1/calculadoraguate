@@ -11,6 +11,7 @@ const files = {
   vrProduct: 'vr-device-illustrative.jpg',
   droneProduct: 'drone-device-illustrative.jpg',
   spikeClass: 'spike-class.jpg',
+  spikeProgramming: 'spike-programming.jpg',
   robotMasterClass: 'robot-master-class.jpg',
   robotMasterDesign: 'robot-master-design.jpg',
   snapClass: 'snap-class.jpg',

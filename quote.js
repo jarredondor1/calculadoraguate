@@ -11,7 +11,7 @@
   const dateText = date => new Intl.DateTimeFormat('es-GT', {day: '2-digit', month: 'long', year: 'numeric'}).format(date);
   const slug = value => value.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '').slice(0, 45) || 'institucion';
   const visual = {
-    Spike: {product: 'spikeProduct', classroom: 'spikeClass', design: 'designClass', level: '4.º primaria a bachillerato', idea: 'Un robot que interpreta su entorno', verbs: ['Explora', 'Construye', 'Programa']},
+    Spike: {product: 'spikeProduct', classroom: 'spikeClass', design: 'designClass', programming: 'spikeProgramming', level: '4.º primaria a bachillerato', idea: 'Un robot que interpreta su entorno', verbs: ['Explora', 'Construye', 'Programa']},
     'Robot Master': {product: 'robotMasterProduct', classroom: 'robotMasterClass', design: 'robotMasterDesign', level: '1.º a 3.º primaria', idea: 'Un robot con movimiento y sensores', verbs: ['Explora', 'Ensambla', 'Prueba']},
     Snap: {product: 'snapProduct', classroom: 'snapClass', design: 'snapDesign', level: 'primaria y secundaria', idea: 'Un circuito que cobra vida', verbs: ['Investiga', 'Conecta', 'Comprueba']},
     TaleBot: {product: 'talebotProduct', classroom: 'talebotClass', design: 'talebotDesign', level: 'preprimaria', idea: 'Un recorrido con instrucciones', verbs: ['Imagina', 'Ordena', 'Descubre']},
@@ -214,7 +214,7 @@
     put(p1, `Emitida: ${dateText(quote.issued)}  ·  Vigente hasta: ${dateText(quote.expires)}`, M, 712, 9, c.gray);
     const contact = [quote.contact, quote.email, quote.location].filter(Boolean).join('  ·  ');
     if (contact) paragraph(p1, `Contacto: ${contact}`, M, 730, CW, 9, 12, c.gray, regular, 2);
-    put(p1, 'Valores en quetzales. Alcance y condiciones sujetos a confirmación comercial.', M, 763, 8, c.gray);
+    put(p1, 'Alcance y condiciones sujetos a confirmación comercial.', M, 763, 8, c.gray);
     footer(p1, 1);
 
     const p2 = doc.addPage([W, H]);
@@ -227,7 +227,7 @@
     const cards = [
       {image: v.classroom, title: v.verbs[0]},
       {image: v.design, title: v.verbs[1]},
-      {image: v.product, title: v.verbs[2]}
+      {image: v.programming || v.product, title: v.verbs[2]}
     ];
     const isBuy = quote.key === 'BUY';
     const visualHeight = isBuy ? 148 : 108;
@@ -236,7 +236,7 @@
       box(p2, x, 244, cardW, visualHeight + 45, c.white, 0, c.border);
       await imageBox(p2, cards[i].image, x + 1, 245, cardW - 2, visualHeight, i === 2 ? c.white : c.pale);
       put(p2, `0${i + 1}  ${cards[i].title}`, x + 10, 252 + visualHeight, 11, c.dark, bold);
-      put(p2, i === 2 ? (illustrativeProduct ? 'Equipo ilustrativo' : 'Equipo de referencia') : 'Imagen conceptual', x + 10, 272 + visualHeight, 8, c.gray);
+      put(p2, i === 2 && !v.programming ? (illustrativeProduct ? 'Equipo ilustrativo' : 'Equipo de referencia') : 'Imagen conceptual', x + 10, 272 + visualHeight, 8, c.gray);
     }
     eyebrow(p2, `QUÉ RECIBE LA INSTITUCIÓN · ${modality[quote.key]}`, M, isBuy ? 455 : 415);
     const included = isBuy ? [
