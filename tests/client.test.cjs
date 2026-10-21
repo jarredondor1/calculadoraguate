@@ -443,7 +443,7 @@ test('descarga una propuesta PDF de dos páginas y una proyección opcional en l
   } finally { await page.close(); }
 });
 
-test('cada tecnología genera una cotización PDF con su programa y su proyecto', async () => {
+test('cada tecnología genera una cotización PDF con su programa y recursos visuales', async () => {
   const page = await newPage();
   try {
     for (const [tech, program, title] of [
@@ -467,5 +467,25 @@ test('cada tecnología genera una cotización PDF con su programa y su proyecto'
       assert.ok(pdf.getSubject().includes(program), tech);
       assert.equal(await page.locator('#quote-dialog').isVisible(), false, title);
     }
+  } finally { await page.close(); }
+});
+
+test('la descarga desde archivo local conserva las imágenes y la proyección elegida', async () => {
+  const page = await browser.newPage({acceptDownloads: true});
+  try {
+    await page.goto(`file://${path.join(root, 'index.html')}`);
+    await page.selectOption('#tech', 'Spike');
+    await page.selectOption('#mode', 'EVO16');
+    await page.click('#quote-open');
+    await page.fill('#quote-school', 'Colegio Costa Sur');
+    await page.check('#quote-projection');
+    const pending = page.waitForEvent('download');
+    await page.click('#quote-download');
+    const saved = await pending;
+    const bytes = fs.readFileSync(await saved.path());
+    const pdf = await PDFDocument.load(bytes);
+    assert.equal(pdf.getPageCount(), 3);
+    assert.ok(bytes.length > 200_000, 'El PDF debe llevar fotografías y equipo incrustados.');
+    assert.equal(await page.locator('#quote-dialog').isVisible(), false);
   } finally { await page.close(); }
 });

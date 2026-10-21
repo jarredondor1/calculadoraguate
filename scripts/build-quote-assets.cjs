@@ -1,0 +1,29 @@
+const fs = require('node:fs');
+const path = require('node:path');
+
+const root = path.resolve(__dirname, '..');
+const files = {
+  logo: 'guategeeks-logo.png',
+  spikeProduct: 'spike-product.jpg',
+  robotMasterProduct: 'robot-master-product.jpg',
+  snapProduct: 'snap-product.jpg',
+  talebotProduct: 'talebot-product.jpg',
+  vrProduct: 'vr-product.jpg',
+  droneProduct: 'drone-product.jpg',
+  spikeClass: 'spike-class.jpg',
+  robotMasterClass: 'robot-master-class.jpg',
+  snapClass: 'snap-class.jpg',
+  talebotClass: 'talebot-class.jpg',
+  vrClass: 'vr-class.jpg',
+  ideaClass: 'idea-class.jpg',
+  designClass: 'design-class.jpg'
+};
+
+const entries = Object.entries(files).map(([key, file]) => {
+  const mime = file.endsWith('.png') ? 'image/png' : 'image/jpeg';
+  const bytes = fs.readFileSync(path.join(root, 'assets', 'quote-media', file));
+  return `  ${JSON.stringify(key)}: ${JSON.stringify(`data:${mime};base64,${bytes.toString('base64')}`)}`;
+});
+
+fs.writeFileSync(path.join(root, 'quote-assets.js'),
+  `/* Recursos incrustados para que la cotización funcione también desde file://. */\nwindow.QUOTE_MEDIA = Object.freeze({\n${entries.join(',\n')}\n});\n`);

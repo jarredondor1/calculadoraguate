@@ -33,11 +33,11 @@ La sección del programa presenta **Socrates Aprende** mediante un recorrido ani
 
 ## Cotizaciones en PDF
 
-El botón **Crear cotización PDF** abre un formulario para indicar institución, contacto, ubicación, vigencia y una nota opcional. Elige una modalidad; cuando la calculadora está en **Comparar todas**, el formulario propone EVOLUCIONA 16 y permite cambiarla. La vista previa muestra el programa, los equipos, los estudiantes y los importes actuales. Al descargar, se genera un PDF A4 con identidad de GuateGeeks, imagen del proyecto de la tecnología elegida, inversión sin IVA, IVA, total con IVA, forma de pago y alcance de la modalidad. Los datos del formulario se procesan localmente en el navegador y no se guardan ni envían a un servidor.
+El botón **Crear cotización PDF** abre un formulario para indicar institución, contacto, ubicación, vigencia y una nota opcional. Elige una modalidad; cuando la calculadora está en **Comparar todas**, el formulario propone EVOLUCIONA 16 y permite cambiarla. La vista previa muestra el programa, los equipos, los estudiantes y los importes actuales. Al descargar, se genera una propuesta A4 de dos páginas: portada visual con equipo, experiencia de aula e inversión, y una página de alcance educativo. La inversión sin IVA tiene la mayor jerarquía; IVA y total con IVA se muestran debajo. Los datos del formulario se procesan localmente en el navegador y no se guardan ni envían a un servidor.
 
-La proyección de cobro por estudiante es opcional para FLEX y EVOLUCIONA, y se agrega como tercera página; INTEGRA no la ofrece. El PDF excluye costos, márgenes y ganancia interna de GuateGeeks. La cotización sigue siendo una estimación sujeta a confirmación comercial. El acceso a Socrates Aprende no está incluido en INTEGRA. Para las demás modalidades, el contenido estudiantil actual abarca 4.º a 6.º primaria; de preprimaria a 3.º primaria los recursos son para docentes, y el tiempo de acceso se acuerda con GuateGeeks.
+La proyección de cobro por estudiante es opcional para FLEX y EVOLUCIONA, y se agrega como tercera página únicamente si se activa en el formulario; INTEGRA no la ofrece. Muestra cobro mensual sugerido por estudiante, ingresos estimados y diferencia bruta después de pagar a GuateGeeks, sin porcentaje de margen. El PDF excluye costos y resultados internos de GuateGeeks. La cotización sigue siendo una estimación sujeta a confirmación comercial. El acceso a Socrates Aprende no está incluido en INTEGRA. Para las demás modalidades, el contenido estudiantil está disponible actualmente para 6.º primaria y se ampliará gradualmente a 5.º; hay recursos docentes y el tiempo de acceso se acuerda con GuateGeeks.
 
-La generación usa una copia local de `pdf-lib` en `assets/vendor/`, junto con su licencia, para que funcione en GitHub Pages sin cargar servicios externos.
+La generación usa una copia local de `pdf-lib` en `assets/vendor/`, junto con su licencia, para que funcione en GitHub Pages sin cargar servicios externos. Las fotografías y el logo se incrustan desde `quote-assets.js`, lo que también permite descargar el PDF al abrir `index.html` como archivo local. Si se modifican las imágenes de `assets/quote-media/`, ejecuta `node scripts/build-quote-assets.cjs` para actualizar ese archivo. Las fotografías de aula representan experiencias conceptuales; no documentan necesariamente una clase de la institución cotizada.
 
 La pantalla institucional oculta los costos y márgenes internos, pero **no protege su confidencialidad**: se encuentran en el HTML y JavaScript publicados por GitHub Pages. Para protegerlos es necesario restringir o separar el simulador interno y sus datos mediante una solución de acceso adecuada.
 
@@ -55,7 +55,7 @@ El sitio no necesita compilación ni dependencias para funcionar. Está preparad
 python3 -m http.server 8000
 ```
 
-Después, visita `http://localhost:8000/`. Los archivos `client.js`, `client.css`, `quote.js` y `assets/` deben publicarse junto con `index.html`.
+Después, visita `http://localhost:8000/`. Los archivos `client.js`, `client.css`, `quote.js`, `quote-assets.js` y `assets/` deben publicarse junto con `index.html`.
 
 ## Pruebas de desarrollo
 
