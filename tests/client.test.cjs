@@ -36,6 +36,103 @@ async function newPage() {
   return page;
 }
 
+test('calcula cada nivel con las fórmulas actuales sin cambiar el escenario visible', async () => {
+  const page = await newPage();
+  try {
+    const result = await page.evaluate(() => {
+      const before = calc();
+      const same = calculateScenario({tech: 'Spike', qty: 5, students: 60, bims: before.bims, down: before.down, sm: before.sm});
+      const preschool = calculateScenario({tech: 'TaleBot', qty: 3, students: 24, bims: before.bims, down: before.down, sm: before.sm});
+      const after = calc();
+      return {same: same.EVO16.net, original: before.EVO16.net, preschool: preschool.EVO16.net,
+        students: preschool.students, visible: after.EVO16.net, technology: document.querySelector('#tech').value};
+    });
+    assert.equal(result.same, result.original);
+    assert.notEqual(result.preschool, result.original);
+    assert.equal(result.students, 24);
+    assert.equal(result.visible, result.original);
+    assert.equal(result.technology, 'Spike');
+  } finally { await page.close(); }
+});
+
+test('la cotización multinivel separa los importes y suma solo los niveles elegidos', async () => {
+  const page = await newPage();
+  try {
+    await page.selectOption('#mode', 'EVO16');
+    await page.click('#quote-open');
+    await page.selectOption('#quote-scope', 'multi');
+    assert.equal(await page.locator('.quote-level').count(), 4);
+    await page.locator('[data-level="pre"] .quote-level-tech').selectOption('Snap');
+    await page.locator('[data-level="pre"] .quote-level-qty').fill('2');
+    await page.locator('[data-level="pre"] .quote-level-students').fill('24');
+    await page.locator('[data-level="primary-low"] .quote-level-enabled').uncheck();
+    await page.locator('[data-level="primary-high"] .quote-level-enabled').uncheck();
+    await page.locator('[data-level="secondary"] .quote-level-enabled').uncheck();
+    const expected = await page.evaluate(() => calculateScenario({tech:'Snap',qty:2,students:24,bims:1,down:.4,sm:.25}).EVO16.net);
+    assert.match(await page.locator('[data-level="pre"] .quote-level-net').innerText(), new RegExp(expected.toLocaleString('es-GT', {minimumFractionDigits:2})));
+    assert.match(await page.locator('#quote-snapshot').innerText(), new RegExp(expected.toLocaleString('es-GT', {minimumFractionDigits:2})));
+    await page.locator('[data-level="secondary"] .quote-level-enabled').check();
+    const larger = await page.evaluate(() => calculateScenario({tech:'Spike',qty:5,students:60,bims:1,down:.4,sm:.25}).EVO16.net);
+    assert.match(await page.locator('#quote-snapshot').innerText(), new RegExp((expected + larger).toLocaleString('es-GT', {minimumFractionDigits:2})));
+    await page.locator('[data-level="pre"] .quote-level-qty').fill('0');
+    assert.equal(await page.locator('#quote-download').isDisabled(), true);
+    await page.selectOption('#quote-mode', 'BUY');
+    assert.equal(await page.locator('#quote-scope').isDisabled(), true);
+    assert.equal(await page.inputValue('#quote-scope'), 'single');
+    assert.equal(await page.locator('#quote-levels').isVisible(), false);
+    assert.match(await page.locator('#quote-scope-help').innerText(), /compra directa.*por separado/i);
+  } finally { await page.close(); }
+});
+
+test('descarga un PDF multinivel con bloques separados y mantiene INTEGRA individual', async () => {
+  const page = await newPage();
+  try {
+    await page.selectOption('#mode', 'EVO16');
+    await page.click('#quote-open');
+    await page.fill('#quote-school', 'Instituto del Valle');
+    await page.selectOption('#quote-scope', 'multi');
+    const pending = page.waitForEvent('download');
+    await page.click('#quote-download');
+    const first = await pending;
+    assert.match(first.suggestedFilename(), /instituto-del-valle-evoluciona-16-multinivel\.pdf$/);
+    const multi = await PDFDocument.load(fs.readFileSync(await first.path()));
+    assert.equal(multi.getPageCount(), 4);
+    assert.match(multi.getSubject(), /4 niveles/);
+
+    await page.click('#quote-open');
+    await page.selectOption('#quote-scope', 'multi');
+    await page.fill('#quote-school', 'Instituto del Valle');
+    await page.check('#quote-projection');
+    const next = page.waitForEvent('download');
+    await page.click('#quote-download');
+    const withProjection = await PDFDocument.load(fs.readFileSync(await (await next).path()));
+    assert.equal(withProjection.getPageCount(), 5);
+
+    await page.selectOption('#mode', 'BUY');
+    await page.click('#quote-open');
+    await page.fill('#quote-school', 'Instituto del Valle');
+    assert.equal(await page.locator('#quote-scope').isDisabled(), true);
+    const buyPending = page.waitForEvent('download');
+    await page.click('#quote-download');
+    const buy = await PDFDocument.load(fs.readFileSync(await (await buyPending).path()));
+    assert.equal(buy.getPageCount(), 2);
+  } finally { await page.close(); }
+});
+
+test('el importe de cada nivel conserva una línea legible en móvil', async () => {
+  const page = await browser.newPage({viewport: {width: 390, height: 844}});
+  try {
+    await page.goto(baseURL);
+    await page.click('#quote-open');
+    await page.selectOption('#quote-scope', 'multi');
+    const metrics = await page.locator('[data-level="primary-high"] .quote-level-net').evaluate(node => {
+      const style = getComputedStyle(node);
+      return {height: node.getBoundingClientRect().height, lineHeight: parseFloat(style.lineHeight)};
+    });
+    assert.ok(metrics.height <= metrics.lineHeight * 1.2, 'El precio no debe partirse en dos líneas.');
+  } finally { await page.close(); }
+});
+
 test('la vista institucional se conecta en vivo y coincide con la calculadora', async () => {
   const page = await newPage();
   try {

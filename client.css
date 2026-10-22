@@ -126,8 +126,22 @@ body.institution-presentation .view-switch .quote-open{display:none}
 .quote-wide{grid-column:1/-1}
 .quote-field{display:flex;flex-direction:column;gap:7px;font-weight:780;font-size:14px;color:var(--gg-ink);min-width:0}
 .quote-field .quote-field-label{color:var(--gg-ink)}.quote-field-label em{color:#b24c2b;font-style:normal}
+.quote-field-help{color:var(--gg-muted);font-weight:500;font-size:12px;line-height:1.45}
 .quote-field input,.quote-field select,.quote-field textarea{width:100%;min-height:46px;border:1px solid #cfc6d9;border-radius:10px;padding:10px 12px;background:#fff;color:var(--gg-ink);font:inherit;font-size:15px;font-weight:450;line-height:1.4}
 .quote-field textarea{resize:vertical;min-height:76px}
+.quote-shared-terms{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:15px}
+.quote-shared-terms .quote-field[hidden],.quote-levels[hidden]{display:none}
+.quote-levels{display:grid;gap:12px}
+.quote-levels-intro{margin:0;color:var(--gg-muted);font-size:13px;line-height:1.45}
+.quote-level{border:1px solid #d8e5e9;border-left:4px solid var(--gg-sky);border-radius:13px;padding:15px;background:#fbfdfe;display:grid;gap:12px}
+.quote-level.is-disabled{opacity:.57;border-left-color:#bcc8cc;background:#f5f6f7}
+.quote-level-head{display:flex;align-items:center;justify-content:space-between;gap:12px}
+.quote-level-toggle{display:flex;align-items:center;gap:9px;color:var(--gg-plum-dark);font-weight:850;font-size:16px;cursor:pointer}
+.quote-level-toggle input{width:19px;height:19px;accent-color:var(--gg-sky);margin:0}
+.quote-level-fields{display:grid;grid-template-columns:1.4fr .7fr .8fr;gap:10px}
+.quote-level-summary{display:flex;align-items:baseline;justify-content:space-between;gap:12px;padding-top:10px;border-top:1px solid #d8e5e9;color:var(--gg-muted);font-size:12px}
+.quote-level-summary strong{display:block;color:var(--gg-plum-dark);font-size:20px;line-height:1.1}
+.quote-level-summary small{display:block;margin-top:4px;color:var(--gg-muted);font-size:12px}
 .quote-field input:focus-visible,.quote-field select:focus-visible,.quote-field textarea:focus-visible,.quote-check input:focus-visible,.quote-actions button:focus-visible,.quote-close:focus-visible,.quote-open:focus-visible{outline:3px solid #257c98;outline-offset:2px}
 .quote-snapshot{display:grid;grid-template-columns:1.15fr .85fr;gap:10px;padding:14px;border-radius:12px;background:#f5f0f8;border:1px solid #e4d9eb;font-size:13px;color:var(--gg-plum-dark)}
 .quote-snapshot>div{min-width:0}.quote-snapshot span{display:block;font-size:11px;font-weight:850;letter-spacing:.04em;color:#6d5b83}.quote-snapshot strong{display:block;font-size:15px;line-height:1.4;margin-top:4px;overflow-wrap:anywhere}.quote-snapshot small{display:block;font-size:12px;color:var(--gg-muted);margin-top:3px}
@@ -138,4 +152,4 @@ body.institution-presentation .view-switch .quote-open{display:none}
 .quote-actions{position:sticky;bottom:-32px;z-index:2;display:flex;justify-content:flex-end;gap:10px;margin:22px -32px -32px;padding:16px 32px 24px;border-top:1px solid var(--gg-border);background:#fff;box-shadow:0 -10px 18px rgba(30,22,45,.04)}
 .quote-actions button{min-height:46px;border-radius:10px;padding:11px 16px;font:inherit;font-size:14px;font-weight:800;cursor:pointer}
 .quote-cancel{background:#fff;border:1px solid var(--gg-border);color:var(--gg-plum-dark)}.quote-download{background:var(--gg-plum-dark);border:1px solid var(--gg-plum-dark);color:#fff}.quote-download:hover{background:#60477f}.quote-download:disabled{opacity:.6;cursor:wait}
-@media(max-width:640px){.view-switch .quote-open{margin-left:0;flex-basis:100%}.quote-form-grid,.quote-snapshot{grid-template-columns:1fr}.quote-actions{bottom:-20px;margin:22px -20px -20px;padding:12px 20px 16px}.quote-actions button{flex:1}.quote-heading{margin-bottom:18px}}
+@media(max-width:640px){.view-switch .quote-open{margin-left:0;flex-basis:100%}.quote-form-grid,.quote-snapshot,.quote-shared-terms{grid-template-columns:1fr}.quote-level-fields{grid-template-columns:repeat(2,minmax(0,1fr))}.quote-level-fields .quote-level-tech-field{grid-column:1/-1}.quote-level-summary{display:block}.quote-level-summary strong{margin-top:8px;white-space:nowrap}.quote-actions{bottom:-20px;margin:22px -20px -20px;padding:12px 20px 16px}.quote-actions button{flex:1}.quote-heading{margin-bottom:18px}}

@@ -45,7 +45,7 @@
 </nav>
 <dialog id="quote-dialog" class="quote-dialog" aria-labelledby="quote-title">
   <form id="quote-form" class="quote-form">
-    <div class="quote-heading"><div><span class="client-overline">PROPUESTA PARA CENTROS EDUCATIVOS</span><h2 id="quote-title">Crear cotización</h2><p>Personaliza la propuesta y descárgala en PDF. Los importes se toman del escenario actual.</p></div><button type="button" id="quote-close" class="quote-close" aria-label="Cerrar">×</button></div>
+    <div class="quote-heading"><div><span class="client-overline">PROPUESTA PARA CENTROS EDUCATIVOS</span><h2 id="quote-title">Crear cotización</h2><p>Elige una modalidad, configura los niveles y revisa los importes antes de descargar el PDF.</p></div><button type="button" id="quote-close" class="quote-close" aria-label="Cerrar">×</button></div>
     <div class="quote-form-grid">
       <label class="quote-field quote-wide"><span class="quote-field-label">Institución educativa <em>*</em></span><input id="quote-school" name="school" required maxlength="90" autocomplete="organization" placeholder="Nombre del centro educativo"></label>
       <label class="quote-field">Persona de contacto <input id="quote-contact" name="contact" maxlength="80" placeholder="Nombre y apellido"></label>
@@ -53,6 +53,12 @@
       <label class="quote-field">Ubicación <input id="quote-location" name="location" maxlength="80" placeholder="Municipio y departamento"></label>
       <label class="quote-field">Vigencia de la cotización <select id="quote-validity" name="validity"><option value="15">15 días</option><option value="30" selected>30 días</option><option value="45">45 días</option></select></label>
       <label class="quote-field quote-wide">Modalidad a cotizar <select id="quote-mode" name="mode"><option value="BUY">INTEGRA · compra</option><option value="RENT">FLEX · renta</option><option value="EVO8">EVOLUCIONA 8</option><option value="EVO16">EVOLUCIONA 16</option></select></label>
+      <label class="quote-field quote-wide">Alcance de la cotización <select id="quote-scope" name="scope"><option value="single">Un programa</option><option value="multi">Varios niveles educativos</option></select><small id="quote-scope-help" class="quote-field-help"></small></label>
+      <div id="quote-shared-terms" class="quote-shared-terms quote-wide">
+        <label class="quote-field" id="quote-bims-field">Duración de FLEX <select id="quote-bims" name="bims"><option value="1">2 meses · 1 bimestre</option><option value="2">4 meses · 2 bimestres</option><option value="3">6 meses · 3 bimestres</option><option value="4">8 meses · 4 bimestres</option></select></label>
+        <label class="quote-field" id="quote-down-field">Pago inicial de EVOLUCIONA <select id="quote-down" name="down"><option value=".2">20 % inicial</option><option value=".3">30 % inicial</option><option value=".4">40 % inicial</option></select></label>
+      </div>
+      <div id="quote-levels" class="quote-levels quote-wide" hidden></div>
       <div id="quote-snapshot" class="quote-snapshot quote-wide" aria-live="polite"></div>
       <label class="quote-check quote-wide"><input id="quote-projection" name="projection" type="checkbox"><span>Agregar estimación opcional de cobro por estudiante para la institución</span></label>
       <label class="quote-field quote-wide">Nota para la institución <textarea id="quote-note" name="note" maxlength="280" rows="2" placeholder="Opcional: grados, fecha de inicio o necesidades del centro educativo"></textarea></label>
@@ -141,8 +147,8 @@ const techs={
 };
 Object.entries(techs).forEach(([k,t])=>{let o=document.createElement('option');o.value=k;o.textContent=t.name;$('tech').appendChild(o)});$('tech').value='Spike';
 function financeFee(d,months){if(d===.4)return 0;if(d===.3)return months===16?.05:.03;return months===16?.10:.06}
-function calc(){
- const t=techs[$('tech').value],qty=Math.max(1,+$('qty').value||5),students=Math.max(1,+$('students').value||60),bims=+$('bims').value||1,down=+$('down').value||.4,sm=+$('schoolMargin').value||.25;
+function calculateScenario({tech,qty:requestedQty,students:requestedStudents,bims:requestedBims,down:requestedDown,sm:requestedMargin}){
+ const t=techs[tech],qty=Math.max(1,+requestedQty||5),students=Math.max(1,+requestedStudents||60),bims=+requestedBims||1,down=+requestedDown||.4,sm=+requestedMargin||.25;
  const costNetUnit=t.cost/1.12,costVatUnit=t.cost-costNetUnit,costNet=costNetUnit*qty,costVat=costVatUnit*qty,costGross=t.cost*qty;
  const dep=(t.cost-t.residual)/t.projects,assetReserve=dep+t.maint;
  function school(net,gross,months){let perNet=net/students/months,perGross=gross/students/months,exact=perGross/(1-sm),suggested=ceil5(exact),revenue=suggested*students*months,contribution=revenue-gross,schoolMargin=revenue?contribution/revenue:0;return{perNet,perGross,exact,suggested,revenue,contribution,schoolMargin}}
@@ -152,6 +158,7 @@ function calc(){
  function evol(months){let base=(months===8?t.evol8:t.evol16)*(qty/5),fee=financeFee(down,months),net=base*(1+fee),support=t.maint*qty*(months===8?1:2),direct=costGross+support+base*.10;let r=finish(months===8?'EVO8':'EVO16',net,direct,months,base,`programa / ${qty} equipos`,down,months);r.fee=fee;r.basePrice=base;return r}
  return{t,qty,students,bims,down,sm,costNet,costVat,costGross,BUY,RENT,EVO8:evol(8),EVO16:evol(16)}
 }
+function calc(){return calculateScenario({tech:$('tech').value,qty:$('qty').value,students:$('students').value,bims:$('bims').value,down:$('down').value,sm:$('schoolMargin').value})}
 const meta={BUY:{name:'INTEGRA · adquisición directa',type:'INTEGRA',desc:'Propiedad inmediata del equipamiento + implementación inicial.'},RENT:{name:'FLEX · programa por renta',type:'FLEX',desc:'Acceso temporal por bimestres. GuateGeeks conserva la propiedad del equipamiento.'},EVO8:{name:'EVOLUCIONA 8',type:'EVOLUCIONA',desc:'8 meses de programa y el equipamiento queda en propiedad de la institución al finalizar.'},EVO16:{name:'EVOLUCIONA 16',type:'EVOLUCIONA',desc:'16 meses de programa, menor presión mensual y propiedad del equipamiento al finalizar.'}};
 function offerCard(k,d,selected){
  let m=d[k],x=meta[k];
