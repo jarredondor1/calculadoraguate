@@ -45,28 +45,16 @@
 </nav>
 <dialog id="quote-dialog" class="quote-dialog" aria-labelledby="quote-title">
   <form id="quote-form" class="quote-form">
-    <div class="quote-heading"><div><span class="client-overline">PROPUESTA PARA CENTROS EDUCATIVOS</span><h2 id="quote-title">Crear cotización</h2><p>Elige una modalidad, configura los niveles y revisa los importes antes de descargar el PDF.</p></div><button type="button" id="quote-close" class="quote-close" aria-label="Cerrar">×</button></div>
+    <div class="quote-heading"><div><span class="client-overline">PROPUESTA PARA CENTROS EDUCATIVOS</span><h2 id="quote-title">Crear cotización</h2><p>Selecciona los kits, los grados que compartirán cada uno y los estudiantes por grado.</p></div><button type="button" id="quote-close" class="quote-close" aria-label="Cerrar">×</button></div>
     <div class="quote-form-grid">
       <label class="quote-field quote-wide"><span class="quote-field-label">Institución educativa <em>*</em></span><input id="quote-school" name="school" required maxlength="90" autocomplete="organization" placeholder="Nombre del centro educativo"></label>
-      <h3 class="quote-step quote-wide"><span>01</span> Configura el programa</h3>
+      <h3 class="quote-step quote-wide"><span>01</span> Configura equipos y grados</h3>
       <label class="quote-field quote-wide">Modalidad a cotizar <select id="quote-mode" name="mode"><option value="BUY">INTEGRA · compra</option><option value="RENT">FLEX · renta</option><option value="EVO8">EVOLUCIONA 8</option><option value="EVO16">EVOLUCIONA 16</option></select></label>
-      <label class="quote-field quote-wide">Alcance de la cotización <select id="quote-scope" name="scope"><option value="single">Un programa</option><option value="multi">Varios programas o niveles</option></select><small id="quote-scope-help" class="quote-field-help"></small></label>
       <div id="quote-shared-terms" class="quote-shared-terms quote-wide">
         <label class="quote-field" id="quote-bims-field">Duración de FLEX <select id="quote-bims" name="bims"><option value="1">2 meses · 1 bimestre</option><option value="2">4 meses · 2 bimestres</option><option value="3">6 meses · 3 bimestres</option><option value="4">8 meses · 4 bimestres</option></select></label>
         <label class="quote-field" id="quote-down-field">Pago inicial de EVOLUCIONA <select id="quote-down" name="down"><option value=".2">20 % inicial</option><option value=".3">30 % inicial</option><option value=".4">40 % inicial</option></select></label>
       </div>
-      <section id="quote-single" class="quote-single quote-wide" aria-label="Programa único">
-        <div class="quote-level-fields">
-          <label class="quote-field">Nivel educativo <select id="quote-single-level"><option value="pre">Preprimaria</option><option value="primary">Primaria</option><option value="basic">Básicos</option><option value="bach">Bachillerato</option></select></label>
-          <label class="quote-field">Tecnología <select id="quote-single-tech"></select></label>
-          <label class="quote-field">Equipos asignados <input id="quote-single-qty" type="number" min="1" max="1000" step="1"></label>
-          <label class="quote-field">Estudiantes que participarán <input id="quote-single-students" type="number" min="1" max="100000" step="1"></label>
-        </div>
-        <div id="quote-single-grades" class="quote-grade-picker"></div>
-        <p class="quote-program-hint" id="quote-single-hint"></p>
-        <button id="quote-start-multi" class="quote-add-level" type="button">+ Agregar otro programa o nivel</button>
-      </section>
-      <div id="quote-levels" class="quote-levels quote-wide" hidden></div>
+      <div id="quote-levels" class="quote-levels quote-wide"></div>
       <h3 class="quote-step quote-wide"><span>02</span> Personaliza la propuesta</h3>
       <label class="quote-field">Persona de contacto <input id="quote-contact" name="contact" maxlength="80" placeholder="Nombre y apellido"></label>
       <label class="quote-field">Correo de contacto <input id="quote-email" name="email" type="email" maxlength="100" autocomplete="email" placeholder="correo@colegio.edu.gt"></label>

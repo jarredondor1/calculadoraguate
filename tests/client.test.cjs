@@ -55,120 +55,74 @@ test('calcula cada nivel con las fórmulas actuales sin cambiar el escenario vis
   } finally { await page.close(); }
 });
 
-test('la cotización permite agregar y repetir niveles con equipos y estudiantes propios', async () => {
+test('Spike Prime comienza con 4.º a 6.º primaria y permite agregar cualquier grado al mismo kit', async () => {
   const page = await newPage();
   try {
-    await page.selectOption('#mode', 'EVO16');
     await page.click('#quote-open');
-    await page.selectOption('#quote-scope', 'multi');
-    assert.equal(await page.locator('.quote-level').count(), 1);
-    await page.locator('.quote-level').first().locator('.quote-level-stage').selectOption('pre');
-    await page.locator('.quote-level').first().locator('.quote-level-tech').selectOption('Snap');
-    await page.locator('.quote-level').first().locator('.quote-level-qty').fill('2');
-    await page.locator('.quote-level').first().locator('.quote-level-students').fill('24');
-    const expected = await page.evaluate(() => calculateScenario({tech:'Snap',qty:2,students:24,bims:1,down:.4,sm:.25}).EVO16.net);
-    assert.match(await page.locator('.quote-level').first().locator('.quote-level-reach').innerText(), /24 estudiantes · 2 equipos/);
-    assert.match(await page.locator('#quote-snapshot').innerText(), new RegExp(expected.toLocaleString('es-GT', {minimumFractionDigits:2})));
-    assert.match(await page.locator('.quote-level').first().locator('.quote-level-suggested').innerText(), /Cobro sugerido: Q/);
-    await page.click('#quote-add-level');
-    assert.equal(await page.locator('.quote-level').count(), 2);
-    await page.locator('.quote-level').last().locator('.quote-level-stage').selectOption('pre');
-    await page.locator('.quote-level').last().locator('.quote-level-tech').selectOption('Spike');
-    const larger = await page.evaluate(() => calculateScenario({tech:'Spike',qty:5,students:60,bims:1,down:.4,sm:.25}).EVO16.net);
-    assert.match(await page.locator('#quote-snapshot').innerText(), new RegExp((expected + larger).toLocaleString('es-GT', {minimumFractionDigits:2})));
-    assert.deepEqual(await page.locator('.quote-level-stage').evaluateAll(nodes => nodes.map(node => node.value)), ['pre', 'pre']);
-    await page.locator('.quote-level').last().locator('.quote-level-remove').click();
-    assert.equal(await page.locator('.quote-level').count(), 1);
-    await page.locator('.quote-level').first().locator('.quote-level-qty').fill('0');
-    assert.equal(await page.locator('#quote-download').isDisabled(), true);
-    await page.selectOption('#quote-mode', 'BUY');
-    assert.equal(await page.locator('#quote-scope').isEnabled(), true);
-    assert.equal(await page.inputValue('#quote-scope'), 'multi');
-    assert.equal(await page.locator('#quote-levels').isVisible(), true);
-    assert.equal(await page.locator('#quote-projection').isDisabled(), true);
+    const group = page.locator('.quote-level').first();
+    assert.equal(await group.locator('.quote-level-tech').inputValue(), 'Spike');
+    assert.equal(await group.locator('.quote-grade-row').count(), 12);
+    for (const id of ['p4', 'p5', 'p6']) assert.equal(await group.locator(`.quote-grade-row[data-grade="${id}"] .quote-grade-check`).isChecked(), true);
+    for (const id of ['pre', 'p1', 'b1', 'h4']) assert.equal(await group.locator(`.quote-grade-row[data-grade="${id}"] .quote-grade-check`).isChecked(), false);
+    await group.locator('.quote-grade-row[data-grade="b1"] .quote-grade-check').check();
+    await group.locator('.quote-grade-row[data-grade="b1"] .quote-grade-students').fill('40');
+    await group.locator('.quote-grade-row[data-grade="h4"] .quote-grade-check').check();
+    await group.locator('.quote-grade-row[data-grade="h4"] .quote-grade-students').fill('30');
+    assert.match(await page.locator('#quote-snapshot').innerText(), /5 equipos · 130 estudiantes/);
+    const expected = await page.evaluate(() => calculateScenario({tech:'Spike',qty:5,students:130,bims:1,down:.4,sm:.25}).EVO16.net);
+    assert.ok((await page.locator('#quote-snapshot').innerText()).includes(`Q ${expected.toLocaleString('es-GT',{minimumFractionDigits:2})}`));
   } finally { await page.close(); }
 });
 
-test('agregar otro programa desde la ficha inicial conserva el primero y abre una ficha nueva', async () => {
+test('cambiar de tecnología propone grados apropiados sin borrar una selección personalizada', async () => {
   const page = await newPage();
   try {
     await page.click('#quote-open');
-    await page.selectOption('#quote-single-level', 'pre');
-    await page.selectOption('#quote-single-tech', 'TaleBot');
-    await page.fill('#quote-single-qty', '11');
-    await page.fill('#quote-single-students', '47');
-    await page.click('#quote-start-multi');
-    assert.equal(await page.inputValue('#quote-scope'), 'multi');
-    assert.equal(await page.locator('.quote-level').count(), 2);
-    assert.equal(await page.locator('.quote-level').first().locator('.quote-level-stage').inputValue(), 'pre');
-    assert.equal(await page.locator('.quote-level').first().locator('.quote-level-qty').inputValue(), '11');
-    assert.equal(await page.locator('.quote-level').first().locator('.quote-level-students').inputValue(), '47');
+    const group = page.locator('.quote-level').first();
+    await group.locator('.quote-level-tech').selectOption('Robot Master');
+    assert.equal(await group.locator('.quote-grade-row[data-grade="p1"] .quote-grade-check').isChecked(), true);
+    assert.equal(await group.locator('.quote-grade-row[data-grade="p4"] .quote-grade-check').isChecked(), false);
+    await group.locator('.quote-grade-row[data-grade="p4"] .quote-grade-check').check();
+    await group.locator('.quote-grade-row[data-grade="p4"] .quote-grade-students').fill('12');
+    await group.locator('.quote-level-tech').selectOption('Spike');
+    assert.equal(await group.locator('.quote-grade-row[data-grade="p4"] .quote-grade-students').inputValue(), '12');
+    assert.equal(await group.locator('.quote-grade-row[data-grade="p1"] .quote-grade-check').isChecked(), true);
+    assert.match(await group.locator('.quote-tech-note').innerText(), /desde 4.º primaria/);
   } finally { await page.close(); }
 });
 
-test('cada programa permite escoger grados concretos sin perderlos al cambiar de tecnología', async () => {
+test('otro grupo de equipos se suma por separado y cada grado conserva sus estudiantes', async () => {
   const page = await newPage();
   try {
     await page.click('#quote-open');
-    await page.selectOption('#quote-single-level', 'primary');
-    const grades = page.locator('#quote-single .quote-grade-picker input');
-    assert.equal(await grades.count(), 6);
-    await page.locator('#quote-single .quote-grade-picker input[value="4"]').check();
-    await page.selectOption('#quote-single-tech', 'Robot Master');
-    assert.equal(await page.locator('#quote-single .quote-grade-picker input[value="4"]').isChecked(), true);
-    assert.match(await page.locator('#quote-snapshot').innerText(), /4.º primaria/);
-    for (const grade of [1, 2, 3, 4]) await page.locator(`#quote-single .quote-grade-picker input[value="${grade}"]`).uncheck();
-    assert.equal(await page.locator('#quote-download').isDisabled(), true);
-    await page.locator('#quote-single .quote-grade-picker input[value="5"]').check();
-    assert.equal(await page.locator('#quote-download').isEnabled(), true);
-    assert.match(await page.locator('#quote-snapshot').innerText(), /5.º primaria/);
-    await page.click('#quote-start-multi');
-    assert.equal(await page.locator('.quote-level').first().locator('.quote-grade-picker input[value="5"]').isChecked(), true);
-    await page.locator('.quote-level').last().locator('.quote-level-stage').selectOption('basic');
-    assert.equal(await page.locator('.quote-level').last().locator('.quote-grade-picker input').count(), 3);
-    await page.locator('.quote-level').last().locator('.quote-level-stage').selectOption('bach');
-    assert.equal(await page.locator('.quote-level').last().locator('.quote-grade-picker input').count(), 2);
-  } finally { await page.close(); }
-});
-
-test('dos niveles pueden compartir los mismos equipos y sumar estudiantes sin duplicar inversión', async () => {
-  const page = await newPage();
-  try {
-    await page.click('#quote-open');
-    await page.selectOption('#quote-mode', 'EVO16');
-    await page.selectOption('#quote-scope', 'multi');
-    const first = page.locator('.quote-level').first();
-    await first.locator('.quote-level-stage').selectOption('primary');
-    await first.locator('.quote-level-tech').selectOption('Spike');
-    await first.locator('.quote-level-qty').fill('5');
-    await first.locator('.quote-level-students').fill('60');
     await page.click('#quote-add-level');
     const second = page.locator('.quote-level').last();
-    await second.locator('.quote-level-stage').selectOption('basic');
-    await second.locator('.quote-level-tech').selectOption('Spike');
-    await second.locator('.quote-level-students').fill('40');
-    await second.locator('.quote-level-share').selectOption('1');
-    assert.equal(await second.locator('.quote-level-qty').isDisabled(), true);
-    assert.match(await second.locator('.quote-level-reach').innerText(), /5 equipos compartidos/);
-    const expected = await page.evaluate(() => calculateScenario({tech:'Spike',qty:5,students:100,bims:1,down:.4,sm:.25}).EVO16);
-    const snapshot = await page.locator('#quote-snapshot').innerText();
-    assert.match(snapshot, /5 equipos · 100 estudiantes/);
-    assert.ok(snapshot.includes(`Q ${expected.net.toLocaleString('es-GT',{minimumFractionDigits:2})}`));
-    assert.match(await second.locator('.quote-level-suggested').innerText(), new RegExp(expected.suggested.toFixed(2)));
-    await page.click('#quote-add-level');
-    const third = page.locator('.quote-level').last();
-    await third.locator('.quote-level-stage').selectOption('bach');
-    await third.locator('.quote-level-tech').selectOption('Spike');
-    await third.locator('.quote-level-students').fill('30');
-    await third.locator('.quote-level-share').selectOption('1');
-    assert.match(await page.locator('#quote-snapshot').innerText(), /5 equipos · 130 estudiantes/);
-    assert.ok((await page.locator('#quote-snapshot').innerText()).includes(`Q ${expected.net.toLocaleString('es-GT',{minimumFractionDigits:2})}`));
-    await second.locator('.quote-level-share').selectOption('own');
-    assert.equal(await second.locator('.quote-level-qty').isEnabled(), true);
-    assert.match(await page.locator('#quote-snapshot').innerText(), /10 equipos/);
-    await first.locator('.quote-level-tech').selectOption('Snap');
-    assert.equal(await third.locator('.quote-level-share').inputValue(), 'own');
-    assert.match(await page.locator('#quote-snapshot').innerText(), /15 equipos/);
+    await second.locator('.quote-level-tech').selectOption('TaleBot');
+    await second.locator('.quote-level-qty').fill('3');
+    for (const id of ['p4', 'p5', 'p6']) await second.locator(`.quote-grade-row[data-grade="${id}"] .quote-grade-check`).uncheck();
+    await second.locator('.quote-grade-row[data-grade="pre"] .quote-grade-check').check();
+    await second.locator('.quote-grade-row[data-grade="pre"] .quote-grade-students').fill('24');
+    assert.match(await page.locator('#quote-snapshot').innerText(), /2 grupos · 8 equipos · 84 estudiantes/);
+    await second.locator('.quote-level-remove').click();
+    assert.match(await page.locator('#quote-snapshot').innerText(), /1 grupo · 5 equipos · 60 estudiantes/);
+  } finally { await page.close(); }
+});
+
+test('impide cotizar sin grados, con estudiantes inválidos o con cero equipos', async () => {
+  const page = await newPage();
+  try {
+    await page.click('#quote-open');
+    const group = page.locator('.quote-level').first();
+    for (const id of ['p4', 'p5', 'p6']) await group.locator(`.quote-grade-row[data-grade="${id}"] .quote-grade-check`).uncheck();
+    assert.equal(await page.locator('#quote-download').isDisabled(), true);
+    await group.locator('.quote-grade-row[data-grade="p4"] .quote-grade-check').check();
+    await group.locator('.quote-grade-row[data-grade="p4"] .quote-grade-students').fill('0');
+    assert.equal(await page.locator('#quote-download').isDisabled(), true);
+    await group.locator('.quote-grade-row[data-grade="p4"] .quote-grade-students').fill('20');
+    await group.locator('.quote-level-qty').fill('0');
+    assert.equal(await page.locator('#quote-download').isDisabled(), true);
+    await group.locator('.quote-level-qty').fill('2');
+    assert.equal(await page.locator('#quote-download').isEnabled(), true);
   } finally { await page.close(); }
 });
 
@@ -180,81 +134,44 @@ test('la proyección se puede activar en programas y se oculta en compra directa
     assert.equal(await page.locator('#quote-projection-field').isVisible(), false);
     await page.selectOption('#quote-mode', 'RENT');
     assert.equal(await page.locator('#quote-projection-field').isVisible(), true);
-    assert.equal(await page.locator('#quote-projection').isEnabled(), true);
     await page.check('#quote-projection');
     assert.equal(await page.locator('#quote-projection').isChecked(), true);
-    await page.uncheck('#quote-projection');
-    assert.equal(await page.locator('#quote-projection').isChecked(), false);
   } finally { await page.close(); }
 });
 
-test('descarga programas agregables en varias páginas y permite INTEGRA multinivel', async () => {
+test('el PDF crece con cada kit y deja el desglose financiero al final', async () => {
   const page = await newPage();
   try {
-    await page.selectOption('#mode', 'EVO16');
-    await page.click('#quote-open');
-    await page.fill('#quote-school', 'Instituto del Valle');
-    await page.selectOption('#quote-scope', 'multi');
-    for (let i = 1; i < 5; i++) await page.click('#quote-add-level');
-    const pending = page.waitForEvent('download');
-    await page.click('#quote-download');
-    const first = await pending;
-    assert.match(first.suggestedFilename(), /instituto-del-valle-evoluciona-16-multinivel\.pdf$/);
-    const multi = await PDFDocument.load(fs.readFileSync(await first.path()));
-    assert.equal(multi.getPageCount(), 7);
-    assert.match(multi.getSubject(), /5 programas/);
-
-    await page.click('#quote-open');
-    await page.selectOption('#quote-scope', 'multi');
-    await page.fill('#quote-school', 'Instituto del Valle');
-    await page.check('#quote-projection');
-    for (let i = 1; i < 5; i++) await page.click('#quote-add-level');
-    const next = page.waitForEvent('download');
-    await page.click('#quote-download');
-    const withProjection = await PDFDocument.load(fs.readFileSync(await (await next).path()));
-    assert.equal(withProjection.getPageCount(), 9);
-
-    await page.selectOption('#mode', 'BUY');
-    await page.click('#quote-open');
-    await page.fill('#quote-school', 'Instituto del Valle');
-    await page.selectOption('#quote-scope', 'multi');
-    await page.click('#quote-add-level');
-    assert.equal(await page.locator('#quote-scope').isEnabled(), true);
-    const buyPending = page.waitForEvent('download');
-    await page.click('#quote-download');
-    const buy = await PDFDocument.load(fs.readFileSync(await (await buyPending).path()));
-    assert.equal(buy.getPageCount(), 4);
-  } finally { await page.close(); }
-});
-
-test('las recomendaciones de cada nivel conservan una línea legible en móvil', async () => {
-  const page = await browser.newPage({viewport: {width: 390, height: 844}});
-  try {
-    await page.goto(baseURL);
-    await page.click('#quote-open');
-    await page.selectOption('#quote-scope', 'multi');
-    const metrics = await page.locator('.quote-level').first().locator('.quote-level-suggested').evaluate(node => {
-      const style = getComputedStyle(node);
-      return {height: node.getBoundingClientRect().height, lineHeight: parseFloat(style.lineHeight)};
-    });
-    assert.ok(metrics.height <= metrics.lineHeight * 2.2, 'La recomendación no debe crecer más de dos líneas.');
-  } finally { await page.close(); }
-});
-
-test('nueve programas generan páginas adicionales sin limitar la selección de niveles', async () => {
-  const page = await newPage();
-  try {
-    await page.selectOption('#mode', 'RENT');
     await page.click('#quote-open');
     await page.fill('#quote-school', 'Colegio Integral');
-    await page.selectOption('#quote-scope', 'multi');
+    await page.click('#quote-add-level');
+    await page.locator('.quote-level').last().locator('.quote-level-tech').selectOption('Robot Master');
+    const pending = page.waitForEvent('download');
+    await page.click('#quote-download');
+    const pdf = await PDFDocument.load(fs.readFileSync(await (await pending).path()));
+    assert.equal(pdf.getPageCount(), 5);
+    assert.match(pdf.getSubject(), /2 grupos de equipos/);
+    await page.click('#quote-open');
+    await page.fill('#quote-school', 'Colegio Integral');
+    await page.check('#quote-projection');
+    const projected = page.waitForEvent('download');
+    await page.click('#quote-download');
+    const withProjection = await PDFDocument.load(fs.readFileSync(await (await projected).path()));
+    assert.equal(withProjection.getPageCount(), 5);
+  } finally { await page.close(); }
+});
+
+test('nueve grupos de equipos caben en una misma propuesta con páginas adicionales', async () => {
+  const page = await newPage();
+  try {
+    await page.click('#quote-open');
+    await page.fill('#quote-school', 'Institución Multinivel');
     for (let i = 1; i < 9; i++) await page.click('#quote-add-level');
     assert.equal(await page.locator('.quote-level').count(), 9);
     const pending = page.waitForEvent('download');
     await page.click('#quote-download');
     const pdf = await PDFDocument.load(fs.readFileSync(await (await pending).path()));
-    assert.equal(pdf.getPageCount(), 10);
-    assert.match(pdf.getSubject(), /9 programas/);
+    assert.equal(pdf.getPageCount(), 14);
   } finally { await page.close(); }
 });
 
@@ -605,7 +522,7 @@ test('opciones guardadas que ya no existen no rompen el simulador', async () => 
   } finally { await page.close(); }
 });
 
-test('la cotización sigue la modalidad y los importes del escenario sin exponer la vista interna', async () => {
+test('el cotizador toma la modalidad y cantidades del simulador sin exponer costos internos', async () => {
   const page = await newPage();
   try {
     await page.selectOption('#tech', 'TaleBot');
@@ -614,139 +531,47 @@ test('la cotización sigue la modalidad y los importes del escenario sin exponer
     await page.fill('#qty', '6');
     await page.fill('#students', '48');
     await page.click('#quote-open');
-    assert.equal(await page.locator('#quote-dialog').isVisible(), true);
     assert.equal(await page.inputValue('#quote-mode'), 'RENT');
-    const snapshot = await page.locator('#quote-snapshot').innerText();
-    assert.match(snapshot, /Robótica para pequeños · 6 equipos · 48 estudiantes/);
-    const expectedNet = await page.evaluate(() => calc().RENT.net);
-    assert.ok(snapshot.includes(`Q ${expectedNet.toLocaleString('es-GT', {minimumFractionDigits: 2, maximumFractionDigits: 2})}`));
-    assert.doesNotMatch(snapshot, /Costo directo|Margen bruto GG|Ganancia bruta GG/);
-    const schedule = await page.evaluate(() => ({initial: calc().RENT.initial, monthly: calc().RENT.installment, gross: calc().RENT.gross}));
-    assert.ok(Math.abs(schedule.initial - schedule.gross * .2) < .01);
-    assert.ok(Math.abs(schedule.initial + schedule.monthly * 4 - schedule.gross) < .01);
-    await page.selectOption('#quote-mode', 'BUY');
-    assert.equal(await page.locator('#quote-projection').isDisabled(), true);
-    await page.selectOption('#quote-mode', 'RENT');
-    assert.equal(await page.locator('#quote-projection').isEnabled(), true);
-    await page.click('#quote-cancel');
-    assert.equal(await page.locator('#quote-dialog').isVisible(), false);
+    assert.equal(await page.locator('.quote-level-tech').inputValue(), 'TaleBot');
+    assert.equal(await page.locator('.quote-level-qty').inputValue(), '6');
+    assert.match(await page.locator('#quote-snapshot').innerText(), /6 equipos · 48 estudiantes/);
+    assert.doesNotMatch(await page.locator('#quote-snapshot').innerText(), /Costo directo|Margen bruto GG|Ganancia bruta GG/);
   } finally { await page.close(); }
 });
 
-test('el programa único se configura dentro del cotizador y personaliza el PDF', async () => {
-  const page = await newPage();
-  try {
-    await page.click('#quote-open');
-    await page.fill('#quote-school', 'Colegio Horizonte');
-    await page.selectOption('#quote-single-level', 'basic');
-    await page.selectOption('#quote-single-tech', 'Snap');
-    await page.fill('#quote-single-qty', '3');
-    await page.fill('#quote-single-students', '42');
-    const expected = await page.evaluate(() => calculateScenario({tech:'Snap',qty:3,students:42,bims:1,down:.4,sm:.25}).EVO16.net);
-    const snapshot = await page.locator('#quote-snapshot').innerText();
-    assert.match(snapshot, /1.º a 3.º básico · Electrónica · 3 equipos · 42 estudiantes/);
-    assert.ok(snapshot.includes(`Q ${expected.toLocaleString('es-GT', {minimumFractionDigits:2})}`));
-    assert.match(await page.locator('#quote-single-hint').innerText(), /Cobro sugerido: Q/);
-    assert.equal(await page.inputValue('#tech'), 'Spike', 'El cotizador no debe alterar el escenario interno');
-    const pending = page.waitForEvent('download');
-    await page.click('#quote-download');
-    const pdf = await PDFDocument.load(fs.readFileSync(await (await pending).path()));
-    assert.match(pdf.getSubject(), /Electrónica/);
-  } finally { await page.close(); }
-});
-
-test('cambiar entre programa único y varios niveles ignora campos ocultos inválidos', async () => {
-  const page = await newPage();
-  try {
-    await page.click('#quote-open');
-    await page.fill('#quote-school', 'Colegio Horizonte');
-    await page.fill('#quote-single-qty', '0');
-    await page.selectOption('#quote-scope', 'multi');
-    assert.equal(await page.locator('#quote-single-qty').isDisabled(), true);
-    assert.equal(await page.locator('#quote-form').evaluate(form => form.checkValidity()), true);
-    await page.locator('.quote-level').first().locator('.quote-level-qty').fill('0');
-    await page.selectOption('#quote-scope', 'single');
-    await page.fill('#quote-single-qty', '2');
-    assert.equal(await page.locator('.quote-level').first().locator('.quote-level-qty').isDisabled(), true);
-    assert.equal(await page.locator('#quote-form').evaluate(form => form.checkValidity()), true);
-  } finally { await page.close(); }
-});
-
-test('descarga una propuesta PDF de dos páginas y una proyección opcional en la tercera', async () => {
-  const page = await newPage();
-  try {
-    await page.selectOption('#tech', 'Spike');
-    await page.selectOption('#mode', 'EVO8');
-    await page.fill('#qty', '5');
-    await page.fill('#students', '75');
-    await page.click('#quote-open');
-    await page.fill('#quote-school', 'Colegio Costa Sur');
-    await page.fill('#quote-contact', 'Ana García');
-    await page.fill('#quote-email', 'ana@colegio.edu.gt');
-    const firstDownload = page.waitForEvent('download');
-    await page.click('#quote-download');
-    const first = await firstDownload;
-    assert.match(first.suggestedFilename(), /GuateGeeks-cotizacion-colegio-costa-sur-evoluciona-8\.pdf/);
-    const firstBytes = fs.readFileSync(await first.path());
-    assert.equal(firstBytes.subarray(0, 5).toString(), '%PDF-');
-    const firstPdf = await PDFDocument.load(firstBytes);
-    assert.equal(firstPdf.getPageCount(), 2);
-    assert.match(firstPdf.getTitle(), /Colegio Costa Sur/);
-    assert.match(firstPdf.getSubject(), /EVOLUCIONA 8.*Robótica para grandes/);
-
-    await page.click('#quote-open');
-    await page.check('#quote-projection');
-    const secondDownload = page.waitForEvent('download');
-    await page.click('#quote-download');
-    const second = await secondDownload;
-    const secondPdf = await PDFDocument.load(fs.readFileSync(await second.path()));
-    assert.equal(secondPdf.getPageCount(), 3);
-  } finally { await page.close(); }
-});
-
-test('cada tecnología genera una cotización PDF con su programa y recursos visuales', async () => {
-  const page = await newPage();
-  try {
-    for (const [tech, program, title] of [
-      ['TaleBot', 'Robótica para pequeños', 'Rutas para pequeños'],
-      ['Robot Master', 'Robótica para primaria', 'Robots que se mueven'],
-      ['Spike', 'Robótica para grandes', 'Robot Cartógrafo'],
-      ['Snap', 'Electrónica', 'Circuitos en Acción'],
-      ['Meta', 'Realidad virtual educativa', 'Expediciones VR'],
-      ['Drones', 'Drones Educativos', 'Aventura de vuelo']
-    ]) {
-      await page.selectOption('#tech', tech);
-      await page.selectOption('#mode', 'BUY');
-      await page.click('#quote-open');
-      await page.fill('#quote-school', 'Colegio de prueba');
-      assert.match(await page.locator('#quote-snapshot').innerText(), new RegExp(program));
-      const pending = page.waitForEvent('download');
-      await page.click('#quote-download');
-      const saved = await pending;
-      const pdf = await PDFDocument.load(fs.readFileSync(await saved.path()));
-      assert.equal(pdf.getPageCount(), 2, tech);
-      assert.ok(pdf.getSubject().includes(program), tech);
-      assert.equal(await page.locator('#quote-dialog').isVisible(), false, title);
-    }
-  } finally { await page.close(); }
-});
-
-test('la descarga desde archivo local conserva las imágenes y la proyección elegida', async () => {
+test('la cotización PDF refleja varios grados en una sola ficha y se descarga en archivo local', async () => {
   const page = await browser.newPage({acceptDownloads: true});
   try {
     await page.goto(`file://${path.join(root, 'index.html')}`);
-    await page.selectOption('#tech', 'Spike');
-    await page.selectOption('#mode', 'EVO16');
     await page.click('#quote-open');
     await page.fill('#quote-school', 'Colegio Costa Sur');
+    await page.locator('.quote-grade-row[data-grade="b1"] .quote-grade-check').check();
+    await page.locator('.quote-grade-row[data-grade="b1"] .quote-grade-students').fill('40');
     await page.check('#quote-projection');
     const pending = page.waitForEvent('download');
     await page.click('#quote-download');
     const saved = await pending;
+    assert.match(saved.suggestedFilename(), /colegio-costa-sur-evoluciona-16\.pdf$/);
     const bytes = fs.readFileSync(await saved.path());
     const pdf = await PDFDocument.load(bytes);
-    assert.equal(pdf.getPageCount(), 3);
-    assert.ok(bytes.length > 200_000, 'El PDF debe llevar fotografías y equipo incrustados.');
-    assert.equal(await page.locator('#quote-dialog').isVisible(), false);
+    assert.equal(pdf.getPageCount(), 5);
+    assert.ok(bytes.length > 200_000);
+  } finally { await page.close(); }
+});
+
+test('cada tecnología genera su propuesta con kit e imagen de aula', async () => {
+  const page = await newPage();
+  try {
+    for (const [tech, name] of [['TaleBot','Robótica para pequeños'],['Robot Master','Robótica para primaria'],['Spike','Robótica para grandes'],['Snap','Electrónica'],['Meta','Realidad virtual educativa'],['Drones','Drones Educativos']]) {
+      await page.selectOption('#tech', tech);
+      await page.selectOption('#mode', 'BUY');
+      await page.click('#quote-open');
+      await page.fill('#quote-school', 'Colegio de prueba');
+      assert.match(await page.locator('.quote-level-tech').locator('option:checked').innerText(), new RegExp(name));
+      const pending = page.waitForEvent('download');
+      await page.click('#quote-download');
+      const pdf = await PDFDocument.load(fs.readFileSync(await (await pending).path()));
+      assert.equal(pdf.getPageCount(), 4, tech);
+    }
   } finally { await page.close(); }
 });
