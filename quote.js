@@ -92,7 +92,7 @@
     const c = {
       cyan: rgbHex('#138cb1'), dark: rgbHex('#184455'), ink: rgbHex('#263746'),
       gray: rgbHex('#66717a'), pale: rgbHex('#f2f8fa'), paleBlue: rgbHex('#e3f3f8'),
-      border: rgbHex('#d8e5e9'), white: rgb(1, 1, 1)
+      border: rgbHex('#d8e5e9'), wash: rgbHex('#fbfdfe'), white: rgb(1, 1, 1)
     };
     const textSafe = value => [...String(value ?? '')].map(ch => {
       if (ch === '\n') return ch;
@@ -182,6 +182,15 @@
       }
     };
     const logo = await getImage('logo');
+    const geekEyes = await getImage('geekEyes');
+    const background = page => {
+      box(page, 0, 0, W, H, c.wash);
+      // Velos de color muy tenue: dan profundidad sin competir con los datos.
+      for (let i = 0; i < 7; i++) {
+        page.drawCircle({x: W + 25, y: H - 365, size: 205 - i * 17, color: c.cyan, opacity: .005});
+        page.drawCircle({x: -45, y: 180, size: 225 - i * 17, color: c.paleBlue, opacity: .018});
+      }
+    };
     const header = page => {
       box(page, 0, 0, W, 101, c.dark);
       box(page, 0, 97, W, 4, c.cyan);
@@ -190,14 +199,13 @@
       put(page, 'GUATEGEEKS', 117, 23, 18, c.white, bold);
       put(page, 'PROPUESTA EDUCATIVA', 118, 49, 9, c.paleBlue, bold);
       put(page, 'Imagina, diseña y crea.', 118, 65, 11, c.white);
-      box(page, W - 100, 24, 63, 5, c.cyan);
-      box(page, W - 82, 37, 45, 5, c.paleBlue);
-      box(page, W - 64, 50, 27, 5, c.cyan);
+      page.drawImage(geekEyes, {x: W - 130, y: H - 76, width: 91, height: 50});
     };
     const v = visual[quote.tech];
     if (!v) throw new Error('Tecnología no reconocida para el PDF.');
 
     const p1 = doc.addPage([W, H]);
+    background(p1);
     header(p1);
     eyebrow(p1, 'PROPUESTA PERSONALIZADA', M, 118);
     put(p1, 'Crear es aprender', M, 136, 27, c.dark, bold);
@@ -239,22 +247,26 @@
     putRight(p1, money(quote.offer.gross), M + CW - 18, financeTop + 116, 10, c.dark, bold);
     rule(p1, M + 18, financeTop + 140, CW - 36);
     const initialPercent = Math.round(quote.offer.initial / quote.offer.gross * 100);
+    const initialWithoutTax = quote.offer.net * quote.offer.initial / quote.offer.gross;
+    const installmentWithoutTax = quote.key === 'BUY' ? 0 : (quote.offer.net - initialWithoutTax) / quote.offer.months;
     const payment = quote.key === 'BUY'
       ? [['FORMA DE PAGO', 'Compra directa'], ['CUOTAS', 'No aplica'], ['PROPIEDAD', 'Desde la compra']]
-      : [[`PAGO INICIAL · ${initialPercent} %`, money(quote.offer.initial)],
-        [`${quote.offer.months} PAGOS MENSUALES`, money(quote.offer.installment)],
+      : [[`INICIAL SIN IVA · ${initialPercent} %`, money(initialWithoutTax), `Con IVA: ${money(quote.offer.initial)}`],
+        [`${quote.offer.months} CUOTAS SIN IVA`, money(installmentWithoutTax), `Con IVA: ${money(quote.offer.installment)}`],
         ['AL FINALIZAR', quote.key === 'RENT' ? 'Se devuelve' : 'Equipo propio']];
-    payment.forEach(([heading, value], i) => {
+    payment.forEach(([heading, value, grossValue], i) => {
       const x = M + 18 + i * 165;
       box(p1, x, financeTop + 151, 156, 50, i === 2 ? c.paleBlue : c.pale);
-      put(p1, heading, x + 8, financeTop + 158, 7.8, c.gray, bold);
-      paragraph(p1, value, x + 8, financeTop + 172, 140, 10.4, 12.5, c.dark, bold, 2);
+      putFit(p1, heading, x + 8, financeTop + 156, 140, 7.8, 7, c.gray, bold);
+      paragraph(p1, value, x + 8, financeTop + 168, 140, 10.4, 12.5, c.dark, bold, 2);
+      if (grossValue) putFit(p1, grossValue, x + 8, financeTop + 185, 140, 8.3, 7.5, c.gray);
     });
     put(p1, `Emitida: ${dateText(quote.issued)}  ·  Vigente hasta: ${dateText(quote.expires)}`, M, 730, 9, c.gray);
     const contact = [quote.contact, quote.email, quote.location].filter(Boolean).join('  ·  ');
     if (contact) paragraph(p1, `Contacto: ${contact}`, M, 750, CW, 9, 12, c.gray, regular, 2);
 
     const p2 = doc.addPage([W, H]);
+    background(p2);
     header(p2);
     eyebrow(p2, '02 / EXPERIENCIA EDUCATIVA', M, 118);
     put(p2, 'Del primer reto a una', M, 137, 25, c.dark, bold);
@@ -321,13 +333,16 @@
 
     if (quote.projection) {
       const p3 = doc.addPage([W, H]);
+      background(p3);
       header(p3);
       eyebrow(p3, '03 / PROYECCIÓN INSTITUCIONAL', M, 117);
       put(p3, 'Cuota e ingresos', M, 139, 26, c.dark, bold);
       put(p3, 'del programa.', M, 171, 26, c.cyan, bold);
       paragraph(p3, `Escenario con ${quote.students} estudiantes durante ${quote.offer.months} meses de ${modality[quote.key]}. La institución decide cuánto cobrar a cada familia.`, M, 215, CW, 10.4, 16, c.gray, regular, 3);
-      const perStudent = quote.offer.gross / quote.students / quote.offer.months;
+      const perStudent = quote.offer.net / quote.students / quote.offer.months;
       const monthlyIncome = quote.offer.suggested * quote.students;
+      const differenceWithoutTax = quote.offer.revenue - quote.offer.net;
+      const differenceWithTax = quote.offer.revenue - quote.offer.gross;
       const half = (CW - 10) / 2;
       box(p3, M, 275, half, 130, c.paleBlue);
       eyebrow(p3, 'COBRO SUGERIDO', M + 15, 289);
@@ -336,13 +351,13 @@
       box(p3, M + half + 10, 275, half, 130, c.pale);
       eyebrow(p3, 'INVERSIÓN EQUIVALENTE', M + half + 25, 289);
       putFit(p3, money(perStudent), M + half + 25, 315, half - 30, 26, 20, c.dark, bold);
-      paragraph(p3, 'Costo total del programa con IVA, distribuido por estudiante y mes.', M + half + 25, 360, half - 30, 9.2, 13, c.gray, regular, 3);
+      paragraph(p3, 'Inversión sin IVA, distribuida por estudiante y mes.', M + half + 25, 360, half - 30, 9.2, 13, c.gray, regular, 3);
 
       eyebrow(p3, 'ASÍ SE FORMA EL RESULTADO', M, 428);
       const rows = [
         ['Ingreso mensual estimado', money(monthlyIncome)],
         [`Ingreso total · ${quote.offer.months} meses`, money(quote.offer.revenue)],
-        ['Pago total a GuateGeeks · con IVA', money(quote.offer.gross)]
+        ['Inversión en GuateGeeks · sin IVA', money(quote.offer.net)]
       ];
       rows.forEach(([title, value], index) => {
         const top = 451 + index * 38;
@@ -351,10 +366,10 @@
         putRight(p3, value, M + CW - 15, top + 9, 12.5, c.dark, bold);
       });
       box(p3, M, 578, CW, 100, c.dark);
-      eyebrow(p3, 'DIFERENCIA BRUTA ESTIMADA', M + 17, 593, c.white);
-      putFit(p3, money(quote.offer.contribution), M + 17, 614, CW - 34, 28, 20, c.white, bold);
-      put(p3, 'Después de pagar a GuateGeeks; antes de los gastos propios del colegio.', M + 17, 652, 9, c.white);
-      paragraph(p3, 'Cálculo: cuota sugerida × estudiantes × meses - pago total del programa con IVA. Es una proyección orientativa; no descuenta docentes, administración, infraestructura, cobros ni impuestos propios. No representa utilidad neta.', M, 704, CW, 9.2, 14, c.gray, regular, 4);
+      eyebrow(p3, 'DIFERENCIA ESTIMADA · SIN IVA', M + 17, 593, c.white);
+      putFit(p3, money(differenceWithoutTax), M + 17, 614, CW - 34, 28, 20, c.white, bold);
+      put(p3, 'Ingreso estimado menos inversión sin IVA; antes de gastos propios.', M + 17, 652, 9, c.white);
+      paragraph(p3, `Si corresponde pagar IVA, la diferencia sería ${money(differenceWithTax)}. El IVA y el total a pagar se desglosan en la primera página. Esta proyección no descuenta docentes, administración, infraestructura ni otros gastos e impuestos del colegio; no representa utilidad neta.`, M, 700, CW, 9.2, 14, c.gray, regular, 5);
     }
     return doc.save();
   }
