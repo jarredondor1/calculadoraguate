@@ -150,54 +150,94 @@
       const w = image.width * scale, h = image.height * scale;
       page.drawImage(image, {x: x + (width - w) / 2, y: H - top - (height + h) / 2, width: w, height: h});
     };
-    const logo = await getImage('logo');
-    const pages = quote.projection ? 3 : 2;
-    const header = (page, number) => {
-      box(page, 0, 0, W * .35, 7, c.gray);
-      box(page, W * .35, 0, W * .65, 7, c.cyan);
-      page.drawImage(logo, {x: M, y: H - 86, width: 56, height: 56});
-      put(page, 'GUATEGEEKS  /  PROPUESTA EDUCATIVA', 106, 40, 9, c.dark, bold);
-      put(page, 'Imagina, diseña y crea.', 106, 59, 10, c.cyan, regular);
-      put(page, `${String(number).padStart(2, '0')} / ${String(pages).padStart(2, '0')}`, 514, 50, 9, c.gray, bold);
-      rule(page, M, 97, CW);
+    const stroke = (page, x1, top1, x2, top2, thickness = 1.6) =>
+      page.drawLine({start: {x: x1, y: H - top1}, end: {x: x2, y: H - top2}, color: c.cyan, thickness});
+    const icon = (page, type, x, top) => {
+      box(page, x, top, 34, 34, c.paleBlue);
+      const line = (a, b, d, e) => stroke(page, x + a, top + b, x + d, top + e);
+      const frame = (left, upper, width, height) => page.drawRectangle({
+        x: x + left, y: H - top - upper - height, width, height,
+        borderColor: c.cyan, borderWidth: 1.6
+      });
+      const dot = (cx, cy, size = 1.8) => page.drawCircle({x: x + cx, y: H - top - cy, size, color: c.cyan});
+      if (type === 'equipment') {
+        frame(7, 10, 20, 16); line(17, 7, 17, 10); dot(17, 6, 1.5);
+        dot(13, 17); dot(21, 17); line(12, 23, 22, 23);
+      } else if (type === 'planning') {
+        frame(9, 6, 17, 23); line(13, 12, 22, 12); line(13, 17, 22, 17); line(13, 22, 20, 22);
+      } else if (type === 'training') {
+        frame(5, 8, 24, 17); line(17, 25, 17, 29); line(12, 29, 22, 29); dot(12, 16, 2); line(17, 16, 24, 16);
+      } else if (type === 'integration') {
+        frame(5, 8, 10, 10); frame(19, 17, 10, 10); line(15, 13, 20, 21); dot(10, 13, 1.4); dot(24, 22, 1.4);
+      } else if (type === 'platform') {
+        frame(5, 8, 24, 17); line(17, 25, 17, 29); line(11, 29, 23, 29); line(10, 13, 24, 13); line(10, 18, 19, 18);
+      } else if (type === 'support') {
+        line(8, 18, 8, 24); line(8, 18, 11, 12); line(11, 12, 17, 9); line(17, 9, 23, 12);
+        line(23, 12, 26, 18); line(26, 18, 26, 24); frame(6, 21, 5, 7); frame(23, 21, 5, 7); line(23, 27, 18, 29);
+      } else if (type === 'launch') {
+        line(8, 25, 25, 8); line(18, 8, 25, 8); line(25, 8, 25, 15); line(8, 15, 8, 25); line(8, 25, 18, 25);
+      } else if (type === 'extra') {
+        page.drawCircle({x: x + 17, y: H - top - 17, size: 10, borderColor: c.cyan, borderWidth: 1.6});
+        line(17, 11, 17, 23); line(11, 17, 23, 17);
+      }
     };
-    const footer = (page, number) => {
-      rule(page, M, 785, CW);
-      put(page, 'GuateGeeks  ·  Cotización sujeta a confirmación comercial', M, 796, 8, c.gray);
-      put(page, `${String(number).padStart(2, '0')}  /  ${String(pages).padStart(2, '0')}`, 514, 796, 8, c.cyan, bold);
+    const logo = await getImage('logo');
+    const header = page => {
+      box(page, 0, 0, W, 101, c.dark);
+      box(page, 0, 97, W, 4, c.cyan);
+      box(page, M, 18, 66, 66, c.white);
+      page.drawImage(logo, {x: M + 5, y: H - 79, width: 56, height: 56});
+      put(page, 'GUATEGEEKS', 117, 23, 18, c.white, bold);
+      put(page, 'PROPUESTA EDUCATIVA', 118, 49, 9, c.paleBlue, bold);
+      put(page, 'Imagina, diseña y crea.', 118, 65, 11, c.white);
+      box(page, W - 100, 24, 63, 5, c.cyan);
+      box(page, W - 82, 37, 45, 5, c.paleBlue);
+      box(page, W - 64, 50, 27, 5, c.cyan);
     };
     const v = visual[quote.tech];
     if (!v) throw new Error('Tecnología no reconocida para el PDF.');
-    const illustrativeProduct = ['Spike', 'Snap', 'Meta', 'Drones'].includes(quote.tech);
-    const productCaption = illustrativeProduct ? 'Equipo ilustrativo; modelo por confirmar' : 'Referencia visual del equipo';
 
     const p1 = doc.addPage([W, H]);
-    header(p1, 1);
-    eyebrow(p1, 'PROPUESTA PERSONALIZADA', M, 113);
-    put(p1, 'Crear es aprender', M, 132, 27, c.dark, bold);
-    put(p1, 'haciendo.', M, 165, 27, c.cyan, bold);
-    putFit(p1, `Para ${quote.school}`, M, 204, CW, 13, 9, c.dark, bold);
-    paragraph(p1, `${quote.program} · ${v.level}. Un programa para imaginar, diseñar y crear con tecnología.`, M, 226, CW, 10.2, 14, c.gray, regular, 2);
-    const cycle = quote.key === 'EVO16' ? '2 ciclos de 8 meses' : quote.key === 'EVO8' ? '1 ciclo de 8 meses' : quote.key === 'RENT' ? `${quote.offer.months} meses de programa` : 'Compra directa';
-    box(p1, M, 263, CW, 27, c.paleBlue);
-    putFit(p1, `${modality[quote.key]}   ·   ${quote.quantity} equipos   ·   ${quote.students} estudiantes   ·   ${cycle}`, M + 11, 270, CW - 22, 9.3, 7.5, c.dark, bold);
-    await imageBox(p1, v.classroom, M, 300, 324, 151);
-    await imageBox(p1, v.product, M + 334, 300, CW - 334, 151, c.white);
-    put(p1, 'Imagen conceptual del aprendizaje', M, 455, 8, c.gray);
-    putFit(p1, productCaption, M + 334, 455, CW - 334, 8, 7.2, c.gray);
+    header(p1);
+    eyebrow(p1, 'PROPUESTA PERSONALIZADA', M, 118);
+    put(p1, 'Crear es aprender', M, 136, 27, c.dark, bold);
+    put(p1, 'haciendo.', M, 169, 27, c.cyan, bold);
+    putFit(p1, `Para ${quote.school}`, M, 207, CW, 13, 9, c.dark, bold);
+    paragraph(p1, `${quote.program} · ${v.level}. Un programa para imaginar, diseñar y crear con tecnología.`, M, 229, CW, 10.2, 14, c.gray, regular, 2);
+    const duration = quote.key === 'EVO16' ? ['2 ciclos', '8 meses cada uno'] :
+      quote.key === 'EVO8' ? ['8 meses', '1 ciclo'] :
+      quote.key === 'RENT' ? [`${quote.offer.months} meses`, 'programa FLEX'] : ['Compra directa', 'sin cuotas'];
+    const scenario = [
+      ['MODELO', modality[quote.key], 'programa elegido', 170],
+      ['EQUIPOS', String(quote.quantity), 'para el aula', 98],
+      ['ESTUDIANTES', String(quote.students), 'participantes', 104],
+      ['DURACIÓN', duration[0], duration[1], 131]
+    ];
+    let scenarioX = M;
+    scenario.forEach(([label, value, detail, width], i) => {
+      box(p1, scenarioX, 269, width, 57, i === 0 ? c.paleBlue : c.pale);
+      if (i === 0) box(p1, scenarioX, 269, 3, 57, c.cyan);
+      put(p1, label, scenarioX + 11, 276, 8, c.gray, bold);
+      putFit(p1, value, scenarioX + 11, 290, width - 22, 13, 10, c.dark, bold);
+      putFit(p1, detail, scenarioX + 11, 310, width - 22, 8.1, 7.2, c.gray);
+      scenarioX += width + 6;
+    });
+    await imageBox(p1, v.classroom, M, 338, 324, 145);
+    await imageBox(p1, v.product, M + 334, 338, CW - 334, 145, c.white);
 
-    box(p1, M, 481, CW, 214, c.white, 0, c.border);
-    box(p1, M, 481, 5, 214, c.cyan);
-    eyebrow(p1, '01 / INVERSIÓN Y FORMA DE PAGO', M + 18, 496);
-    put(p1, modality[quote.key], M + 18, 511, 11, c.dark, bold);
-    put(p1, 'Precio total sin IVA', M + 18, 532, 10, c.gray);
-    putFit(p1, money(quote.offer.net), M + 18, 548, CW - 40, 29, 20, c.dark, bold);
-    rule(p1, M + 18, 589, CW - 36);
-    put(p1, 'IVA (12 %)', M + 18, 597, 10, c.gray);
-    putRight(p1, money(quote.offer.tax), M + 211, 597, 10, c.dark, bold);
-    put(p1, 'Total con IVA', M + 277, 597, 10, c.gray);
-    putRight(p1, money(quote.offer.gross), M + CW - 18, 597, 10, c.dark, bold);
-    rule(p1, M + 18, 621, CW - 36);
+    const financeTop = 500;
+    box(p1, M, financeTop, CW, 214, c.white, 0, c.border);
+    box(p1, M, financeTop, 5, 214, c.cyan);
+    eyebrow(p1, '01 / INVERSIÓN Y FORMA DE PAGO', M + 18, financeTop + 15);
+    put(p1, modality[quote.key], M + 18, financeTop + 30, 11, c.dark, bold);
+    put(p1, 'Precio total sin IVA', M + 18, financeTop + 51, 10, c.gray);
+    putFit(p1, money(quote.offer.net), M + 18, financeTop + 67, CW - 40, 29, 20, c.dark, bold);
+    rule(p1, M + 18, financeTop + 108, CW - 36);
+    put(p1, 'IVA (12 %)', M + 18, financeTop + 116, 10, c.gray);
+    putRight(p1, money(quote.offer.tax), M + 211, financeTop + 116, 10, c.dark, bold);
+    put(p1, 'Total con IVA', M + 277, financeTop + 116, 10, c.gray);
+    putRight(p1, money(quote.offer.gross), M + CW - 18, financeTop + 116, 10, c.dark, bold);
+    rule(p1, M + 18, financeTop + 140, CW - 36);
     const initialPercent = Math.round(quote.offer.initial / quote.offer.gross * 100);
     const payment = quote.key === 'BUY'
       ? [['FORMA DE PAGO', 'Compra directa'], ['CUOTAS', 'No aplica'], ['PROPIEDAD', 'Desde la compra']]
@@ -206,22 +246,20 @@
         ['AL FINALIZAR', quote.key === 'RENT' ? 'Se devuelve' : 'Equipo propio']];
     payment.forEach(([heading, value], i) => {
       const x = M + 18 + i * 165;
-      box(p1, x, 632, 156, 50, i === 2 ? c.paleBlue : c.pale);
-      put(p1, heading, x + 8, 639, 7.8, c.gray, bold);
-      paragraph(p1, value, x + 8, 653, 140, 10.4, 12.5, c.dark, bold, 2);
+      box(p1, x, financeTop + 151, 156, 50, i === 2 ? c.paleBlue : c.pale);
+      put(p1, heading, x + 8, financeTop + 158, 7.8, c.gray, bold);
+      paragraph(p1, value, x + 8, financeTop + 172, 140, 10.4, 12.5, c.dark, bold, 2);
     });
-    put(p1, `Emitida: ${dateText(quote.issued)}  ·  Vigente hasta: ${dateText(quote.expires)}`, M, 712, 9, c.gray);
+    put(p1, `Emitida: ${dateText(quote.issued)}  ·  Vigente hasta: ${dateText(quote.expires)}`, M, 730, 9, c.gray);
     const contact = [quote.contact, quote.email, quote.location].filter(Boolean).join('  ·  ');
-    if (contact) paragraph(p1, `Contacto: ${contact}`, M, 730, CW, 9, 12, c.gray, regular, 2);
-    put(p1, 'Alcance y condiciones sujetos a confirmación comercial.', M, 763, 8, c.gray);
-    footer(p1, 1);
+    if (contact) paragraph(p1, `Contacto: ${contact}`, M, 750, CW, 9, 12, c.gray, regular, 2);
 
     const p2 = doc.addPage([W, H]);
-    header(p2, 2);
-    eyebrow(p2, '02 / EXPERIENCIA EDUCATIVA', M, 113);
-    put(p2, 'Del primer reto a una', M, 132, 25, c.dark, bold);
-    put(p2, 'creación propia.', M, 163, 25, c.cyan, bold);
-    paragraph(p2, `${quote.program}: ${v.idea.toLowerCase()}. El grupo explora, construye y comparte lo aprendido.`, M, 204, CW, 10.2, 15, c.gray, regular, 2);
+    header(p2);
+    eyebrow(p2, '02 / EXPERIENCIA EDUCATIVA', M, 118);
+    put(p2, 'Del primer reto a una', M, 137, 25, c.dark, bold);
+    put(p2, 'creación propia.', M, 168, 25, c.cyan, bold);
+    paragraph(p2, `${quote.program}: ${v.idea.toLowerCase()}. El grupo explora, construye y comparte lo aprendido.`, M, 210, CW, 10.2, 15, c.gray, regular, 2);
     const gap = 9, cardW = (CW - gap * 2) / 3;
     const cards = [
       {image: v.classroom, title: v.verbs[0]},
@@ -229,37 +267,40 @@
       {image: v.programming || v.product, title: v.verbs[2]}
     ];
     const isBuy = quote.key === 'BUY';
-    const visualHeight = isBuy ? 148 : 108;
+    const visualHeight = isBuy ? 145 : 107;
     for (let i = 0; i < cards.length; i++) {
       const x = M + i * (cardW + gap);
-      box(p2, x, 244, cardW, visualHeight + 45, c.white, 0, c.border);
-      await imageBox(p2, cards[i].image, x + 1, 245, cardW - 2, visualHeight, i === 2 ? c.white : c.pale);
-      put(p2, `0${i + 1}  ${cards[i].title}`, x + 10, 252 + visualHeight, 11, c.dark, bold);
-      put(p2, i === 2 && !v.programming ? (illustrativeProduct ? 'Equipo ilustrativo' : 'Equipo de referencia') : 'Imagen conceptual', x + 10, 272 + visualHeight, 8, c.gray);
+      box(p2, x, 247, cardW, visualHeight + 31, c.white, 0, c.border);
+      await imageBox(p2, cards[i].image, x + 1, 248, cardW - 2, visualHeight, i === 2 ? c.white : c.pale);
+      put(p2, `0${i + 1}  ${cards[i].title}`, x + 10, 255 + visualHeight, 11, c.dark, bold);
     }
-    eyebrow(p2, `QUÉ RECIBE LA INSTITUCIÓN · ${modality[quote.key]}`, M, isBuy ? 455 : 415);
+    const serviceHeadingTop = isBuy ? 437 : 400;
+    eyebrow(p2, 'QUÉ RECIBE LA INSTITUCIÓN', M, serviceHeadingTop);
+    put(p2, isBuy ? 'Equipamiento y puesta en marcha' : 'Lo que incluye el programa', M, serviceHeadingTop + 17, 18, c.dark, bold);
+    box(p2, M + CW - 145, serviceHeadingTop + 18, 145, 28, c.paleBlue);
+    putFit(p2, modality[quote.key], M + CW - 134, serviceHeadingTop + 25, 123, 10.3, 8.7, c.dark, bold);
     const included = isBuy ? [
-      ['Equipamiento educativo', `${quote.quantity} equipos para el aula.`],
-      ['Puesta en marcha', 'Orientación para comenzar a usarlos.'],
-      ['Capacitación de uso', 'Una hora de formación sobre el equipo.'],
-      ['Formación adicional', 'Las horas extra se cotizan aparte.']
+      ['equipment', 'Equipamiento educativo', `${quote.quantity} equipos para crear proyectos en el aula.`],
+      ['launch', 'Puesta en marcha', 'Orientación para comenzar a usarlos.'],
+      ['training', 'Capacitación de uso', 'Una hora de formación sobre el equipo.'],
+      ['extra', 'Formación adicional', 'Horas extra disponibles por cotización.']
     ] : [
-      ['Equipamiento educativo', `${quote.quantity} equipos para desarrollar el programa.`],
-      ['Planificación docente', 'Actividades alineadas con el CNB.'],
-      ['Capacitación docente', 'Formación para trabajar con los equipos.'],
-      ['Integración tecnológica', 'Orientación para llevar la tecnología al aula.'],
-      ['Socrates Aprende', 'Recursos docentes y contenido según grado.'],
-      ['Soporte y seguimiento', `Acompañamiento durante ${quote.offer.months} meses.`]
+      ['equipment', 'Equipamiento educativo', `${quote.quantity} equipos para crear proyectos en el aula.`],
+      ['planning', 'Planificación docente', 'Guías y retos alineados con el CNB.'],
+      ['training', 'Capacitación docente', 'Formación para enseñar con el equipo.'],
+      ['integration', 'Integración tecnológica', 'Orientación para incorporarlo en clase.'],
+      ['platform', 'Socrates Aprende', 'Recursos docentes y acceso según el grado.'],
+      ['support', 'Soporte y seguimiento', `Acompañamiento durante los ${quote.offer.months} meses.`]
     ];
-    const serviceH = isBuy ? 68 : 66;
-    included.forEach(([title, description], i) => {
+    const serviceTop = isBuy ? 492 : 455;
+    const serviceH = isBuy ? 75 : 70;
+    included.forEach(([symbol, title, description], i) => {
       const col = i % 2, row = Math.floor(i / 2);
-      const x = M + col * 264, top = (isBuy ? 475 : 435) + row * (serviceH + 6);
+      const x = M + col * 264, top = serviceTop + row * (serviceH + 7);
       box(p2, x, top, 257, serviceH, c.white, 0, c.border);
-      box(p2, x + 10, top + 11, 18, 18, c.paleBlue);
-      put(p2, String(i + 1).padStart(2, '0'), x + 14, top + 14, 8, c.cyan, bold);
-      putFit(p2, title, x + 37, top + 10, 208, 10.5, 9, c.dark, bold);
-      paragraph(p2, description, x + 11, top + 32, 231, 9.2, 12.5, c.gray, regular, 2);
+      icon(p2, symbol, x + 11, top + 13);
+      putFit(p2, title, x + 56, top + 11, 190, 11.5, 9.8, c.dark, bold);
+      paragraph(p2, description, x + 56, top + 34, 188, 9.5, 13, c.gray, regular, 2);
     });
     const ownership = quote.key === 'BUY' ? 'El colegio adquiere los equipos desde el inicio.' :
       quote.key === 'RENT' ? 'Los equipos se devuelven a GuateGeeks al finalizar.' :
@@ -269,19 +310,18 @@
       quote.tech === 'TaleBot' || quote.tech === 'Robot Master'
         ? 'Para esta etapa hay recursos docentes. Contenido estudiantil disponible hoy para 6.º primaria y, gradualmente, 5.º. Vigencia acordada con GuateGeeks.'
         : 'Contenido estudiantil disponible hoy para 6.º primaria y, gradualmente, 5.º. Incluye recursos docentes. Vigencia acordada con GuateGeeks.';
-    const closingTop = isBuy ? 635 : 658;
+    const closingTop = isBuy ? 662 : 696;
     box(p2, M, closingTop, CW, 79, c.paleBlue);
     eyebrow(p2, 'DESTINO DEL EQUIPO', M + 12, closingTop + 11);
-    paragraph(p2, ownership, M + 12, closingTop + 28, 203, 9.2, 12.5, c.dark, regular, 4);
+    paragraph(p2, ownership, M + 12, closingTop + 28, 203, 9.3, 12.5, c.dark, regular, 4);
     box(p2, M + 226, closingTop + 12, 1, 55, c.border);
     eyebrow(p2, 'SOCRATES APRENDE', M + 240, closingTop + 11);
     paragraph(p2, platform, M + 240, closingTop + 28, CW - 252, 8.8, 11.5, c.dark, regular, 4);
-    if (quote.note) paragraph(p2, `Nota: ${quote.note}`, M, isBuy ? 725 : 746, CW, 8.2, 9, c.gray, regular, 4);
-    footer(p2, 2);
+    if (quote.note) paragraph(p2, `Nota: ${quote.note}`, M, closingTop + 87, CW, 8.2, 10, c.gray, regular, 3);
 
     if (quote.projection) {
       const p3 = doc.addPage([W, H]);
-      header(p3, 3);
+      header(p3);
       eyebrow(p3, '03 / PROYECCIÓN INSTITUCIONAL', M, 117);
       put(p3, 'Cuota e ingresos', M, 139, 26, c.dark, bold);
       put(p3, 'del programa.', M, 171, 26, c.cyan, bold);
@@ -315,7 +355,6 @@
       putFit(p3, money(quote.offer.contribution), M + 17, 614, CW - 34, 28, 20, c.white, bold);
       put(p3, 'Después de pagar a GuateGeeks; antes de los gastos propios del colegio.', M + 17, 652, 9, c.white);
       paragraph(p3, 'Cálculo: cuota sugerida × estudiantes × meses - pago total del programa con IVA. Es una proyección orientativa; no descuenta docentes, administración, infraestructura, cobros ni impuestos propios. No representa utilidad neta.', M, 704, CW, 9.2, 14, c.gray, regular, 4);
-      footer(p3, 3);
     }
     return doc.save();
   }
