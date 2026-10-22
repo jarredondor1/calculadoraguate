@@ -106,6 +106,31 @@ test('agregar otro programa desde la ficha inicial conserva el primero y abre un
   } finally { await page.close(); }
 });
 
+test('cada programa permite escoger grados concretos sin perderlos al cambiar de tecnología', async () => {
+  const page = await newPage();
+  try {
+    await page.click('#quote-open');
+    await page.selectOption('#quote-single-level', 'primary');
+    const grades = page.locator('#quote-single .quote-grade-picker input');
+    assert.equal(await grades.count(), 6);
+    await page.locator('#quote-single .quote-grade-picker input[value="4"]').check();
+    await page.selectOption('#quote-single-tech', 'Robot Master');
+    assert.equal(await page.locator('#quote-single .quote-grade-picker input[value="4"]').isChecked(), true);
+    assert.match(await page.locator('#quote-snapshot').innerText(), /4.º primaria/);
+    for (const grade of [1, 2, 3, 4]) await page.locator(`#quote-single .quote-grade-picker input[value="${grade}"]`).uncheck();
+    assert.equal(await page.locator('#quote-download').isDisabled(), true);
+    await page.locator('#quote-single .quote-grade-picker input[value="5"]').check();
+    assert.equal(await page.locator('#quote-download').isEnabled(), true);
+    assert.match(await page.locator('#quote-snapshot').innerText(), /5.º primaria/);
+    await page.click('#quote-start-multi');
+    assert.equal(await page.locator('.quote-level').first().locator('.quote-grade-picker input[value="5"]').isChecked(), true);
+    await page.locator('.quote-level').last().locator('.quote-level-stage').selectOption('basic');
+    assert.equal(await page.locator('.quote-level').last().locator('.quote-grade-picker input').count(), 3);
+    await page.locator('.quote-level').last().locator('.quote-level-stage').selectOption('bach');
+    assert.equal(await page.locator('.quote-level').last().locator('.quote-grade-picker input').count(), 2);
+  } finally { await page.close(); }
+});
+
 test('descarga programas agregables en varias páginas y permite INTEGRA multinivel', async () => {
   const page = await newPage();
   try {
@@ -556,13 +581,13 @@ test('el programa único se configura dentro del cotizador y personaliza el PDF'
   try {
     await page.click('#quote-open');
     await page.fill('#quote-school', 'Colegio Horizonte');
-    await page.selectOption('#quote-single-level', 'secondary');
+    await page.selectOption('#quote-single-level', 'basic');
     await page.selectOption('#quote-single-tech', 'Snap');
     await page.fill('#quote-single-qty', '3');
     await page.fill('#quote-single-students', '42');
     const expected = await page.evaluate(() => calculateScenario({tech:'Snap',qty:3,students:42,bims:1,down:.4,sm:.25}).EVO16.net);
     const snapshot = await page.locator('#quote-snapshot').innerText();
-    assert.match(snapshot, /Básicos y bachillerato · Electrónica · 3 equipos · 42 estudiantes/);
+    assert.match(snapshot, /1.º a 3.º básico · Electrónica · 3 equipos · 42 estudiantes/);
     assert.ok(snapshot.includes(`Q ${expected.toLocaleString('es-GT', {minimumFractionDigits:2})}`));
     assert.match(await page.locator('#quote-single-hint').innerText(), /Cobro sugerido: Q/);
     assert.equal(await page.inputValue('#tech'), 'Spike', 'El cotizador no debe alterar el escenario interno');

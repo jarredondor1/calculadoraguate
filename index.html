@@ -57,11 +57,12 @@
       </div>
       <section id="quote-single" class="quote-single quote-wide" aria-label="Programa único">
         <div class="quote-level-fields">
-          <label class="quote-field">Nivel educativo <select id="quote-single-level"><option value="pre">Preprimaria</option><option value="primary-low">Primaria · 1.º a 3.º</option><option value="primary-high">Primaria · 4.º a 6.º</option><option value="secondary">Básicos y bachillerato</option></select></label>
+          <label class="quote-field">Nivel educativo <select id="quote-single-level"><option value="pre">Preprimaria</option><option value="primary">Primaria</option><option value="basic">Básicos</option><option value="bach">Bachillerato</option></select></label>
           <label class="quote-field">Tecnología <select id="quote-single-tech"></select></label>
           <label class="quote-field">Equipos asignados <input id="quote-single-qty" type="number" min="1" max="1000" step="1"></label>
           <label class="quote-field">Estudiantes que participarán <input id="quote-single-students" type="number" min="1" max="100000" step="1"></label>
         </div>
+        <div id="quote-single-grades" class="quote-grade-picker"></div>
         <p class="quote-program-hint" id="quote-single-hint"></p>
         <button id="quote-start-multi" class="quote-add-level" type="button">+ Agregar otro programa o nivel</button>
       </section>

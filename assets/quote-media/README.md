@@ -1,12 +1,13 @@
 # Recursos visuales de la cotización
 
-Las escenas de aula son conceptuales. No representan estudiantes o instalaciones de una institución específica. Las imágenes de equipo para robótica de grandes, electrónica, VR y drones son ilustrativas; el modelo comercial se confirma con GuateGeeks.
+Las escenas de aula son conceptuales. No representan estudiantes o instalaciones de una institución específica. Las fotografías de los kits TaleBot, Robot Master y LEGO Spike Prime fueron proporcionadas por GuateGeeks como referencia visual para esta cotización. Las imágenes de equipo para electrónica, VR y drones son ilustrativas; el modelo comercial se confirma con GuateGeeks.
 
 Las siguientes imágenes fueron creadas con la herramienta integrada `image_gen` para esta propuesta y convertidas a JPEG optimizado. Los prompts se resumen aquí para conservar la intención visual:
 
 | Archivo | Prompt de producción |
 | --- | --- |
 | `spike-device-illustrative.jpg` | Robot educativo modular de escritorio con bloque programable amarillo, estructura cian, ruedas y sensor frontal; fotografía editorial de producto sobre fondo claro, sin marcas ni texto. |
+| `robot-master-class-generated.png` | Tres estudiantes de primaria crean y programan con un kit modular verde, amarillo y cian basado en la referencia visual del Robot Master compartida por GuateGeeks; escena conceptual de aula. |
 | `spike-programming.jpg` | Tres estudiantes guatemaltecos de secundaria programan en una computadora de bloques un robot modular de colores cian, amarillo y morado, con el equipo y el código visibles en una misma escena; fotografía editorial, sin logos ni texto legible. |
 | `talebot-design.jpg` | Tres niños guatemaltecos de preprimaria planifican una ruta en cuadrícula con tarjetas de dirección y un pequeño robot blanco; fotografía editorial, aula natural, sin marcas ni texto. |
 | `robot-master-design.jpg` | Niños guatemaltecos de 7 a 9 años arman en equipo un robot modular de piezas verdes, amarillas y azules, acompañados por docente; fotografía editorial, sin marcas ni texto. |

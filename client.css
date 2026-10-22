@@ -147,6 +147,12 @@ body.institution-presentation .view-switch .quote-open{display:none}
 .quote-add-level{width:100%;min-height:48px;border:2px dashed #9dc8d4;border-radius:12px;background:#f3fafc;color:var(--gg-plum-dark);font:inherit;font-size:14px;font-weight:850;cursor:pointer}.quote-add-level:hover{background:#e6f5fa}
 .quote-single .quote-add-level{margin-top:14px}
 .quote-level-fields{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+.quote-grade-picker{display:flex;flex-wrap:wrap;align-items:center;gap:8px;margin:13px 0;padding:12px;background:#eef8fb;border:1px solid #d4eaf0;border-radius:12px}
+.quote-grade-title{flex-basis:100%;font-size:13px;font-weight:700;color:var(--gg-plum-dark)}
+.quote-grade-chip{display:inline-flex;align-items:center;gap:5px;min-height:34px;padding:5px 11px;border:1px solid #bddde6;border-radius:999px;background:#fff;color:var(--gg-plum-dark);font-size:13px;font-weight:700;cursor:pointer}
+.quote-grade-chip:has(input:checked){background:#d7f1fa;border-color:var(--gg-sky)}
+.quote-grade-chip input{width:16px;height:16px;margin:0;accent-color:var(--gg-sky)}
+.quote-grade-fixed{font-size:13px;color:var(--gg-muted)}
 .quote-level-summary{display:flex;align-items:baseline;justify-content:space-between;gap:12px;padding-top:10px;border-top:1px solid #d8e5e9;color:var(--gg-muted);font-size:12px}
 .quote-level-summary strong{display:block;color:var(--gg-plum-dark);font-size:13px;line-height:1.4;text-align:right}
 .quote-level-summary small{display:block;margin-top:4px;color:var(--gg-muted);font-size:12px}
