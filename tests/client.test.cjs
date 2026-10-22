@@ -69,8 +69,9 @@ test('la cotización multinivel separa los importes y suma solo los niveles eleg
     await page.locator('[data-level="primary-high"] .quote-level-enabled').uncheck();
     await page.locator('[data-level="secondary"] .quote-level-enabled').uncheck();
     const expected = await page.evaluate(() => calculateScenario({tech:'Snap',qty:2,students:24,bims:1,down:.4,sm:.25}).EVO16.net);
-    assert.match(await page.locator('[data-level="pre"] .quote-level-net').innerText(), new RegExp(expected.toLocaleString('es-GT', {minimumFractionDigits:2})));
+    assert.match(await page.locator('[data-level="pre"] .quote-level-reach').innerText(), /24 estudiantes alcanzados · 2 equipos/);
     assert.match(await page.locator('#quote-snapshot').innerText(), new RegExp(expected.toLocaleString('es-GT', {minimumFractionDigits:2})));
+    assert.match(await page.locator('[data-level="pre"] .quote-level-suggested').innerText(), /Cobro sugerido: Q/);
     await page.locator('[data-level="secondary"] .quote-level-enabled').check();
     const larger = await page.evaluate(() => calculateScenario({tech:'Spike',qty:5,students:60,bims:1,down:.4,sm:.25}).EVO16.net);
     assert.match(await page.locator('#quote-snapshot').innerText(), new RegExp((expected + larger).toLocaleString('es-GT', {minimumFractionDigits:2})));
@@ -119,17 +120,17 @@ test('descarga un PDF multinivel con bloques separados y mantiene INTEGRA indivi
   } finally { await page.close(); }
 });
 
-test('el importe de cada nivel conserva una línea legible en móvil', async () => {
+test('las recomendaciones de cada nivel conservan una línea legible en móvil', async () => {
   const page = await browser.newPage({viewport: {width: 390, height: 844}});
   try {
     await page.goto(baseURL);
     await page.click('#quote-open');
     await page.selectOption('#quote-scope', 'multi');
-    const metrics = await page.locator('[data-level="primary-high"] .quote-level-net').evaluate(node => {
+    const metrics = await page.locator('[data-level="primary-high"] .quote-level-suggested').evaluate(node => {
       const style = getComputedStyle(node);
       return {height: node.getBoundingClientRect().height, lineHeight: parseFloat(style.lineHeight)};
     });
-    assert.ok(metrics.height <= metrics.lineHeight * 1.2, 'El precio no debe partirse en dos líneas.');
+    assert.ok(metrics.height <= metrics.lineHeight * 2.2, 'La recomendación no debe crecer más de dos líneas.');
   } finally { await page.close(); }
 });
 
@@ -505,6 +506,45 @@ test('la cotización sigue la modalidad y los importes del escenario sin exponer
     assert.equal(await page.locator('#quote-projection').isEnabled(), true);
     await page.click('#quote-cancel');
     assert.equal(await page.locator('#quote-dialog').isVisible(), false);
+  } finally { await page.close(); }
+});
+
+test('el programa único se configura dentro del cotizador y personaliza el PDF', async () => {
+  const page = await newPage();
+  try {
+    await page.click('#quote-open');
+    await page.fill('#quote-school', 'Colegio Horizonte');
+    await page.selectOption('#quote-single-level', 'secondary');
+    await page.selectOption('#quote-single-tech', 'Snap');
+    await page.fill('#quote-single-qty', '3');
+    await page.fill('#quote-single-students', '42');
+    const expected = await page.evaluate(() => calculateScenario({tech:'Snap',qty:3,students:42,bims:1,down:.4,sm:.25}).EVO16.net);
+    const snapshot = await page.locator('#quote-snapshot').innerText();
+    assert.match(snapshot, /Básicos y bachillerato · Electrónica · 3 equipos · 42 estudiantes/);
+    assert.ok(snapshot.includes(`Q ${expected.toLocaleString('es-GT', {minimumFractionDigits:2})}`));
+    assert.match(await page.locator('#quote-single-hint').innerText(), /Cobro sugerido: Q/);
+    assert.equal(await page.inputValue('#tech'), 'Spike', 'El cotizador no debe alterar el escenario interno');
+    const pending = page.waitForEvent('download');
+    await page.click('#quote-download');
+    const pdf = await PDFDocument.load(fs.readFileSync(await (await pending).path()));
+    assert.match(pdf.getSubject(), /Electrónica/);
+  } finally { await page.close(); }
+});
+
+test('cambiar entre programa único y varios niveles ignora campos ocultos inválidos', async () => {
+  const page = await newPage();
+  try {
+    await page.click('#quote-open');
+    await page.fill('#quote-school', 'Colegio Horizonte');
+    await page.fill('#quote-single-qty', '0');
+    await page.selectOption('#quote-scope', 'multi');
+    assert.equal(await page.locator('#quote-single-qty').isDisabled(), true);
+    assert.equal(await page.locator('#quote-form').evaluate(form => form.checkValidity()), true);
+    await page.locator('[data-level="pre"] .quote-level-qty').fill('0');
+    await page.selectOption('#quote-scope', 'single');
+    await page.fill('#quote-single-qty', '2');
+    assert.equal(await page.locator('[data-level="pre"] .quote-level-qty').isDisabled(), true);
+    assert.equal(await page.locator('#quote-form').evaluate(form => form.checkValidity()), true);
   } finally { await page.close(); }
 });
 
