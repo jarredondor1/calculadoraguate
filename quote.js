@@ -27,20 +27,37 @@
     {id: 'secondary', label: 'Básicos y bachillerato', tech: 'Spike'}
   ];
   const technologyOptions = Object.entries(techs).map(([key, item]) => `<option value="${key}">${item.name}</option>`).join('');
+  const levelOptions = levelDefinitions.map(level => `<option value="${level.id}">${level.label}</option>`).join('');
   el('quote-single-tech').innerHTML = technologyOptions;
-  levelsContainer.innerHTML = `<p class="quote-levels-intro">Los valores iniciales son de ejemplo. Confirma la tecnología, los equipos y los estudiantes de cada nivel antes de descargar.</p>${levelDefinitions.map(level => `
-    <section class="quote-level" data-level="${level.id}">
-      <div class="quote-level-head"><label class="quote-level-toggle"><input class="quote-level-enabled" type="checkbox" checked> ${level.label}</label></div>
+  levelsContainer.innerHTML = `<p class="quote-levels-intro">Agrega cada programa que necesite la institución. Puedes repetir un nivel con distintas tecnologías y cantidades.</p><div id="quote-level-list" class="quote-level-list"></div><button id="quote-add-level" class="quote-add-level" type="button">+ Agregar otro programa o nivel</button>`;
+  const levelList = el('quote-level-list');
+  let nextLevelId = 0;
+  function syncLevelControls() {
+    [...levelList.children].forEach((row, index) => {
+      row.querySelector('.quote-level-title').textContent = `Programa ${index + 1}`;
+      row.querySelector('.quote-level-remove').disabled = levelList.children.length === 1;
+    });
+  }
+  function addLevel(values = {}) {
+    const definition = levelDefinitions.find(level => level.id === values.level) || levelDefinitions[levelList.children.length % levelDefinitions.length];
+    const row = document.createElement('section');
+    row.className = 'quote-level';
+    row.dataset.line = String(++nextLevelId);
+    row.innerHTML = `<div class="quote-level-head"><strong class="quote-level-title">Programa ${levelList.children.length + 1}</strong><button class="quote-level-remove" type="button" aria-label="Quitar programa">Quitar</button></div>
       <div class="quote-level-fields">
-        <label class="quote-field quote-level-tech-field">Tecnología <select class="quote-level-tech">${technologyOptions}</select></label>
-        <label class="quote-field">Equipos asignados <input class="quote-level-qty" type="number" min="1" max="1000" step="1" value="5"></label>
-        <label class="quote-field">Estudiantes que participarán <input class="quote-level-students" type="number" min="1" max="100000" step="1" value="60"></label>
+        <label class="quote-field">Nivel educativo <select class="quote-level-stage">${levelOptions}</select></label>
+        <label class="quote-field">Tecnología <select class="quote-level-tech">${technologyOptions}</select></label>
+        <label class="quote-field">Equipos asignados <input class="quote-level-qty" type="number" min="1" max="1000" step="1" value="${values.qty ?? 5}"></label>
+        <label class="quote-field">Estudiantes que participarán <input class="quote-level-students" type="number" min="1" max="100000" step="1" value="${values.students ?? 60}"></label>
       </div>
-      <div class="quote-level-summary"><span class="quote-level-reach"></span><strong class="quote-level-suggested"></strong></div>
-    </section>`).join('')}`;
-  levelDefinitions.forEach(level => {
-    levelsContainer.querySelector(`[data-level="${level.id}"] .quote-level-tech`).value = level.tech;
-  });
+      <div class="quote-level-summary"><span class="quote-level-reach"></span><strong class="quote-level-suggested"></strong></div>`;
+    levelList.append(row);
+    row.querySelector('.quote-level-stage').value = definition.id;
+    row.querySelector('.quote-level-tech').value = values.tech || definition.tech;
+    syncLevelControls();
+    refreshSnapshot();
+    return row;
+  }
 
   function showError(message) {
     error.textContent = message;
@@ -50,25 +67,17 @@
   const validScenario = () => ['quote-single-qty', 'quote-single-students'].every(id => positiveInteger(el(id).value.trim()));
 
   const positiveInteger = value => value !== '' && Number.isSafeInteger(Number(value)) && Number(value) > 0;
-  const isMulti = () => scope.value === 'multi' && mode.value !== 'BUY';
+  const isMulti = () => scope.value === 'multi';
   const scenarioFor = (tech, qty, students) => calculateScenario({
     tech, qty, students, bims: el('quote-bims').value, down: el('quote-down').value,
     sm: el('schoolMargin').value
   });
   function activeLevels() {
-    return levelDefinitions.map(definition => {
-      const row = levelsContainer.querySelector(`[data-level="${definition.id}"]`);
-      const enabled = row.querySelector('.quote-level-enabled').checked;
+    return [...levelList.children].map(row => {
+      const definition = levelDefinitions.find(level => level.id === row.querySelector('.quote-level-stage').value);
       const tech = row.querySelector('.quote-level-tech').value;
       const qty = row.querySelector('.quote-level-qty').value.trim();
       const students = row.querySelector('.quote-level-students').value.trim();
-      row.classList.toggle('is-disabled', !enabled);
-      row.querySelectorAll('.quote-level-tech,.quote-level-qty,.quote-level-students').forEach(input => { input.disabled = !enabled; });
-      if (!enabled) {
-        row.querySelector('.quote-level-reach').textContent = 'Nivel no incluido';
-        row.querySelector('.quote-level-suggested').textContent = '';
-        return null;
-      }
       if (!positiveInteger(qty) || !positiveInteger(students)) {
         row.querySelector('.quote-level-reach').textContent = 'Revisa las cantidades';
         row.querySelector('.quote-level-suggested').textContent = '';
@@ -80,20 +89,18 @@
       row.querySelector('.quote-level-suggested').textContent = mode.value === 'BUY' ? '' : `Cobro sugerido: ${money(offer.suggested)} / estudiante / mes`;
       return {id: definition.id, label: definition.label, tech, program: data.t.name,
         quantity: data.qty, students: data.students, offer};
-    }).filter(Boolean);
+    });
   }
 
   function refreshSnapshot() {
-    scope.disabled = mode.value === 'BUY';
-    if (scope.disabled) scope.value = 'single';
-    el('quote-scope-help').textContent = scope.disabled
-      ? 'INTEGRA es una compra directa y se cotiza por separado.'
-      : 'Una sola modalidad para todos los niveles seleccionados; cada nivel conserva su propio precio.';
+    el('quote-scope-help').textContent = 'Una modalidad para todos los programas agregados. INTEGRA, FLEX y EVOLUCIONA se cotizan en documentos separados.';
+    if (isMulti() && !levelList.children.length) addLevel({level: el('quote-single-level').value, tech: el('quote-single-tech').value,
+      qty: positiveInteger(el('quote-single-qty').value) ? el('quote-single-qty').value : 5,
+      students: positiveInteger(el('quote-single-students').value) ? el('quote-single-students').value : 60});
     levelsContainer.hidden = !isMulti();
     el('quote-single').hidden = isMulti();
     el('quote-single').querySelectorAll('input,select').forEach(input => { input.disabled = isMulti(); });
-    levelsContainer.querySelectorAll('.quote-level-enabled').forEach(input => { input.disabled = !isMulti(); });
-    if (!isMulti()) levelsContainer.querySelectorAll('.quote-level-tech,.quote-level-qty,.quote-level-students').forEach(input => { input.disabled = true; });
+    levelList.querySelectorAll('input,select').forEach(input => { input.disabled = !isMulti(); });
     el('quote-shared-terms').hidden = mode.value === 'BUY';
     el('quote-bims-field').hidden = mode.value !== 'RENT';
     el('quote-down-field').hidden = !mode.value.startsWith('EVO');
@@ -103,7 +110,7 @@
     if (isMulti()) {
       const levels = activeLevels();
       if (!levels.length || levels.some(level => level.invalid)) {
-        el('quote-snapshot').textContent = levels.length ? 'Revisa equipos y estudiantes de cada nivel activo.' : 'Selecciona al menos un nivel educativo.';
+        el('quote-snapshot').textContent = levels.length ? 'Revisa equipos y estudiantes de cada programa.' : 'Agrega al menos un programa o nivel educativo.';
         download.disabled = true;
         return;
       }
@@ -111,7 +118,7 @@
       const gross = levels.reduce((sum, level) => sum + level.offer.gross, 0);
       const quantity = levels.reduce((sum, level) => sum + level.quantity, 0);
       const students = levels.reduce((sum, level) => sum + level.students, 0);
-      el('quote-snapshot').innerHTML = `<div><span>PROPUESTA POR NIVELES</span><strong>${levels.length} niveles · ${quantity} equipos · ${students} estudiantes</strong></div><div><span>TOTAL ${modality[mode.value]} SIN IVA</span><strong>${money(net)}</strong><small>Con IVA: ${money(gross)}</small></div>`;
+      el('quote-snapshot').innerHTML = `<div><span>PROPUESTA PERSONALIZADA</span><strong>${levels.length} programas · ${quantity} equipos · ${students} estudiantes</strong></div><div><span>TOTAL ${modality[mode.value]} SIN IVA</span><strong>${money(net)}</strong><small>Con IVA: ${money(gross)}</small></div>`;
       download.disabled = false;
       return;
     }
@@ -153,7 +160,7 @@
       const levels = activeLevels().map(level => ({...level, offer: visibleOffer(level.offer)}));
       const totals = ['net', 'tax', 'gross', 'initial', 'installment', 'revenue', 'contribution']
         .reduce((result, field) => ({...result, [field]: levels.reduce((sum, level) => sum + level.offer[field], 0)}), {});
-      return {...basics, scope: 'multi', program: 'Programa por niveles', levels,
+      return {...basics, scope: 'multi', program: 'Programas por niveles', levels,
         quantity: levels.reduce((sum, level) => sum + level.quantity, 0),
         students: levels.reduce((sum, level) => sum + level.students, 0),
         offer: {...totals, months: levels[0].offer.months}};
@@ -179,7 +186,7 @@
     const doc = await PDFDocument.create();
     doc.setTitle(`Cotización GuateGeeks · ${quote.school}`);
     doc.setAuthor('GuateGeeks');
-    doc.setSubject(`${modality[quote.key]} · ${quote.scope === 'multi' ? `${quote.levels.length} niveles` : quote.program}`);
+    doc.setSubject(`${modality[quote.key]} · ${quote.scope === 'multi' ? `${quote.levels.length} programas` : quote.program}`);
     doc.setCreator('Simulador GuateGeeks');
     const regular = await doc.embedFont(StandardFonts.Helvetica);
     const bold = await doc.embedFont(StandardFonts.HelveticaBold);
@@ -301,7 +308,7 @@
       const ordered = await PDFDocument.create();
       ordered.setTitle(`Cotización GuateGeeks · ${quote.school}`);
       ordered.setAuthor('GuateGeeks');
-      ordered.setSubject(`${modality[quote.key]} · ${quote.scope === 'multi' ? `${quote.levels.length} niveles` : quote.program}`);
+      ordered.setSubject(`${modality[quote.key]} · ${quote.scope === 'multi' ? `${quote.levels.length} programas` : quote.program}`);
       ordered.setCreator('Simulador GuateGeeks');
       const pages = await ordered.copyPages(doc, order);
       pages.forEach(page => ordered.addPage(page));
@@ -311,43 +318,69 @@
       const p1 = doc.addPage([W, H]);
       background(p1);
       header(p1);
-      eyebrow(p1, 'INVERSIÓN FINAL POR NIVELES', M, 120);
-      put(p1, 'Una inversión por cada etapa.', M, 141, 23, c.dark, bold);
+      eyebrow(p1, 'INVERSIÓN FINAL POR PROGRAMA', M, 120);
+      put(p1, 'Una inversión para crear.', M, 141, 23, c.dark, bold);
       putFit(p1, `Para ${quote.school}`, M, 181, CW, 13, 9, c.dark, bold);
-      paragraph(p1, 'Una misma modalidad con equipos, estudiantes e inversión detallados por nivel educativo.', M, 207, CW, 10, 14, c.gray, regular, 2);
+      paragraph(p1, 'Una modalidad compartida, con equipos, estudiantes e importes detallados por programa educativo.', M, 207, CW, 10, 14, c.gray, regular, 2);
       box(p1, M, 239, CW, 72, c.paleBlue);
       eyebrow(p1, 'MODALIDAD COMPARTIDA', M + 14, 249);
       putFit(p1, modality[quote.key], M + 14, 267, 190, 17, 13, c.dark, bold);
-      const period = quote.key === 'EVO16' ? '2 ciclos · 16 meses' : quote.key === 'EVO8' ? '1 ciclo · 8 meses' : `${quote.offer.months} meses de programa`;
+      const period = quote.key === 'EVO16' ? '2 ciclos · 16 meses' : quote.key === 'EVO8' ? '1 ciclo · 8 meses' : quote.key === 'BUY' ? 'Compra directa' : `${quote.offer.months} meses de programa`;
       putRight(p1, period, M + CW - 15, 266, 10, c.dark, bold);
-      putRight(p1, `${quote.levels.length} niveles  ·  ${quote.quantity} equipos  ·  ${quote.students} estudiantes`, M + CW - 15, 287, 9, c.gray);
-      eyebrow(p1, 'INVERSIÓN POR NIVEL', M, 328);
-      quote.levels.forEach((level, index) => {
+      putRight(p1, `${quote.levels.length} programas  ·  ${quote.quantity} equipos  ·  ${quote.students} estudiantes`, M + CW - 15, 287, 9, c.gray);
+      eyebrow(p1, quote.levels.length > 4 ? 'RESUMEN DE LA PROPUESTA' : 'INVERSIÓN POR PROGRAMA', M, 328);
+      const summaryLevels = quote.levels.length > 4 ? [] : quote.levels;
+      if (!summaryLevels.length) paragraph(p1, `Los ${quote.levels.length} programas y sus importes individuales se detallan en las páginas anteriores.`, M, 351, CW, 10, 14, c.gray, regular, 2);
+      summaryLevels.forEach((level, index) => {
         const top = 351 + index * 58;
         box(p1, M, top, CW, 54, index % 2 ? c.white : c.pale);
         box(p1, M, top, 3, 54, c.cyan);
         putFit(p1, level.label, M + 13, top + 8, 265, 12, 10, c.dark, bold);
         putFit(p1, `${level.program} · ${level.quantity} equipos · ${level.students} estudiantes`, M + 13, top + 29, 310, 8.6, 7.5, c.gray);
-        putFit(p1, `Cobro mensual sugerido: ${money(level.offer.suggested)} por estudiante`, M + 13, top + 42, 310, 7.8, 7, c.dark);
+        if (quote.key !== 'BUY') putFit(p1, `Cobro mensual sugerido: ${money(level.offer.suggested)} por estudiante`, M + 13, top + 42, 310, 7.8, 7, c.dark);
         putRight(p1, money(level.offer.net), M + CW - 13, top + 9, 13, c.dark, bold);
         putRight(p1, 'sin IVA', M + CW - 13, top + 31, 8, c.gray);
       });
-      const totalTop = 365 + quote.levels.length * 58 + 19;
+      const totalTop = 365 + summaryLevels.length * 58 + 19;
       box(p1, M, totalTop, CW, 140, c.dark);
       eyebrow(p1, 'INVERSIÓN TOTAL SIN IVA', M + 17, totalTop + 13, c.white);
       putFit(p1, money(quote.offer.net), M + 17, totalTop + 30, CW - 34, 27, 21, c.white, bold);
       rule(p1, M + 17, totalTop + 68, CW - 34, c.paleBlue);
       put(p1, `IVA (12 %): ${money(quote.offer.tax)}`, M + 17, totalTop + 76, 9.3, c.white);
       putRight(p1, `Total con IVA: ${money(quote.offer.gross)}`, M + CW - 17, totalTop + 76, 9.3, c.white, bold);
-      const initialNet = quote.offer.net * quote.offer.initial / quote.offer.gross;
-      const installmentNet = (quote.offer.net - initialNet) / quote.offer.months;
-      put(p1, `Inicial sin IVA: ${money(initialNet)}`, M + 17, totalTop + 98, 9, c.white);
-      putRight(p1, `${quote.offer.months} cuotas sin IVA: ${money(installmentNet)} / mes`, M + CW - 17, totalTop + 98, 9, c.white);
-      put(p1, `Con IVA: ${money(quote.offer.initial)}`, M + 17, totalTop + 115, 8.2, c.paleBlue);
-      putRight(p1, `Con IVA: ${money(quote.offer.installment)} / mes`, M + CW - 17, totalTop + 115, 8.2, c.paleBlue);
+      if (quote.key === 'BUY') {
+        put(p1, 'Pago único por compra directa', M + 17, totalTop + 98, 9, c.white);
+        putRight(p1, 'Equipos propios desde la compra', M + CW - 17, totalTop + 98, 9, c.white);
+      } else {
+        const initialNet = quote.offer.net * quote.offer.initial / quote.offer.gross;
+        const installmentNet = (quote.offer.net - initialNet) / quote.offer.months;
+        put(p1, `Inicial sin IVA: ${money(initialNet)}`, M + 17, totalTop + 98, 9, c.white);
+        putRight(p1, `${quote.offer.months} cuotas sin IVA: ${money(installmentNet)} / mes`, M + CW - 17, totalTop + 98, 9, c.white);
+        put(p1, `Con IVA: ${money(quote.offer.initial)}`, M + 17, totalTop + 115, 8.2, c.paleBlue);
+        putRight(p1, `Con IVA: ${money(quote.offer.installment)} / mes`, M + CW - 17, totalTop + 115, 8.2, c.paleBlue);
+      }
       put(p1, `Emitida: ${dateText(quote.issued)}  ·  Vigente hasta: ${dateText(quote.expires)}`, M, Math.min(800, totalTop + 153), 8.6, c.gray);
       const contact = [quote.contact, quote.email, quote.location].filter(Boolean).join('  ·  ');
       if (contact) paragraph(p1, `Contacto: ${contact}`, M, Math.min(813, totalTop + 170), CW, 8.4, 11, c.gray, regular, 2);
+      if (quote.levels.length > 4) {
+        eyebrow(p1, 'ALCANCE CONSOLIDADO POR NIVEL', M, 589);
+        const byLevel = new Map();
+        quote.levels.forEach(level => {
+          const item = byLevel.get(level.id) || {label: level.label, programs: 0, quantity: 0, students: 0, net: 0};
+          item.programs += 1;
+          item.quantity += level.quantity;
+          item.students += level.students;
+          item.net += level.offer.net;
+          byLevel.set(level.id, item);
+        });
+        levelDefinitions.map(level => byLevel.get(level.id)).filter(Boolean).forEach((item, index) => {
+          const top = 613 + index * 46;
+          box(p1, M, top, CW, 41, index % 2 ? c.white : c.pale);
+          putFit(p1, item.label, M + 12, top + 6, 310, 10.5, 9, c.dark, bold);
+          putFit(p1, `${item.programs} ${item.programs === 1 ? 'programa' : 'programas'} · ${item.quantity} equipos · ${item.students} estudiantes`, M + 12, top + 22, 310, 8.1, 7, c.gray);
+          putRight(p1, money(item.net), M + CW - 12, top + 12, 11.5, c.dark, bold);
+        });
+      }
 
       for (let start = 0; start < quote.levels.length; start += 2) {
         const page = doc.addPage([W, H]);
@@ -367,7 +400,7 @@
           await imageBox(page, view.classroom, M + 14, top + 61, 192, 112);
           put(page, `${level.quantity} equipos asignados`, M + 220, top + 61, 9.5, c.dark, bold);
           put(page, `${level.students} estudiantes alcanzados`, M + 220, top + 82, 9.5, c.dark, bold);
-          put(page, `${level.offer.months} meses de programa`, M + 220, top + 103, 9, c.gray);
+          put(page, quote.key === 'BUY' ? 'Compra directa · equipo propio' : `${level.offer.months} meses de programa`, M + 220, top + 103, 9, c.gray);
           eyebrow(page, 'APRENDER HACIENDO', M + 220, top + 132);
           paragraph(page, `${view.idea}. Los estudiantes exploran, crean y prueban con ${level.program.toLowerCase()}.`, M + 220, top + 153, CW - 235, 9, 13, c.gray, regular, 3);
           rule(page, M + 14, top + 186, CW - 28);
@@ -391,8 +424,13 @@
       put(services, 'para cada nivel.', M, 171, 23, c.cyan, bold);
       box(services, M, 221, CW, 75, c.paleBlue);
       eyebrow(services, modality[quote.key], M + 14, 233);
-      paragraph(services, `${quote.quantity} equipos distribuidos entre ${quote.levels.length} niveles y ${quote.students} estudiantes. Las condiciones del programa son comunes; la tecnología y la inversión se detallan por nivel.`, M + 14, 253, CW - 28, 10, 14, c.dark, regular, 3);
-      const included = [
+      paragraph(services, `${quote.quantity} equipos en ${quote.levels.length} programas para ${quote.students} estudiantes. La modalidad es común; cada nivel conserva su tecnología y alcance.`, M + 14, 253, CW - 28, 10, 14, c.dark, regular, 3);
+      const included = quote.key === 'BUY' ? [
+        ['equipment', 'Equipamiento educativo', 'Equipos adquiridos para los niveles cotizados.'],
+        ['launch', 'Puesta en marcha', 'Orientación para comenzar a utilizarlos.'],
+        ['training', 'Capacitación de uso', 'Incluye una hora de formación sobre cada equipo.'],
+        ['extra', 'Formación adicional', 'Horas adicionales disponibles por cotización.']
+      ] : [
         ['equipment', 'Equipamiento educativo', 'Equipos para los niveles incluidos en esta propuesta.'],
         ['planning', 'Planificación docente', 'Guías y retos alineados con el CNB.'],
         ['training', 'Capacitación docente', 'Formación para enseñar con cada equipo.'],
@@ -409,7 +447,8 @@
       });
       box(services, M, 579, CW, 159, c.paleBlue);
       eyebrow(services, 'DESTINO DEL EQUIPO', M + 13, 591);
-      const ownership = quote.key === 'RENT' ? 'En FLEX, los equipos se devuelven a GuateGeeks al finalizar el programa.' :
+      const ownership = quote.key === 'BUY' ? 'En INTEGRA, los equipos son propiedad de la institución desde la compra.' :
+        quote.key === 'RENT' ? 'En FLEX, los equipos se devuelven a GuateGeeks al finalizar el programa.' :
         quote.key === 'EVO16' ? 'En EVOLUCIONA 16, los equipos quedan en la institución al completar los dos ciclos de 8 meses.' :
           'En EVOLUCIONA 8, los equipos quedan en la institución al completar el ciclo de 8 meses.';
       paragraph(services, ownership, M + 13, 608, CW - 26, 9.5, 13, c.dark, regular, 3);
@@ -417,35 +456,63 @@
       eyebrow(services, 'SOCRATES APRENDE', M + 13, 663);
       const levelIds = new Set(quote.levels.map(level => level.id));
       const platformNotes = [];
-      if (levelIds.has('primary-high')) platformNotes.push('Contenido estudiantil disponible hoy para 6.º primaria y gradualmente para 5.º.');
-      if (levelIds.has('pre') || levelIds.has('primary-low')) platformNotes.push('Preprimaria y 1.º a 3.º: recursos docentes.');
-      if (levelIds.has('secondary')) platformNotes.push('Básicos y bachillerato: fases posteriores.');
-      platformNotes.push('La vigencia del acceso se acuerda con GuateGeeks.');
+      if (quote.key === 'BUY') platformNotes.push('Socrates Aprende no está incluido en INTEGRA. Puede cotizarse por separado.');
+      else {
+        if (levelIds.has('primary-high')) platformNotes.push('Contenido estudiantil disponible hoy para 6.º primaria y gradualmente para 5.º.');
+        if (levelIds.has('pre') || levelIds.has('primary-low')) platformNotes.push('Preprimaria y 1.º a 3.º: recursos docentes.');
+        if (levelIds.has('secondary')) platformNotes.push('Básicos y bachillerato: fases posteriores.');
+        platformNotes.push('La vigencia del acceso se acuerda con GuateGeeks.');
+      }
       paragraph(services, platformNotes.join(' '), M + 13, 680, CW - 26, 9.1, 12.5, c.dark, regular, 4);
       if (quote.note) paragraph(services, `Nota: ${quote.note}`, M, 755, CW, 8.2, 10, c.gray, regular, 2);
 
       if (quote.projection) {
-        const projection = doc.addPage([W, H]);
-        background(projection);
-        header(projection);
-        eyebrow(projection, 'PROYECCIÓN INSTITUCIONAL · OPCIONAL', M, 118);
-        put(projection, 'Una cuota por cada nivel.', M, 139, 24, c.dark, bold);
-        paragraph(projection, 'GuateGeeks sugiere una referencia mensual por estudiante; el colegio decide su cobro final. Las diferencias se calculan antes de gastos propios.', M, 181, CW, 10, 15, c.gray, regular, 3);
-        quote.levels.forEach((level, index) => {
-          const top = 243 + index * 86;
-          box(projection, M, top, CW, 78, index % 2 ? c.white : c.pale, 0, c.border);
-          putFit(projection, level.label, M + 13, top + 10, CW - 26, 11.5, 9.5, c.dark, bold);
-          putFit(projection, `${level.program} · ${level.students} estudiantes`, M + 13, top + 27, CW - 26, 8.4, 7.5, c.gray);
-          put(projection, `Sugerido: ${money(level.offer.suggested)} / estudiante / mes`, M + 13, top + 49, 8.8, c.dark);
-          putRight(projection, `Ingreso: ${money(level.offer.revenue)}`, M + CW - 13, top + 29, 9.1, c.dark);
-          putRight(projection, `Diferencia sin IVA: ${money(level.offer.revenue - level.offer.net)}`, M + CW - 13, top + 49, 9.1, c.dark, bold);
-        });
-        const resultTop = 261 + quote.levels.length * 86;
-        box(projection, M, resultTop, CW, 103, c.dark);
-        eyebrow(projection, 'DIFERENCIA TOTAL ESTIMADA · SIN IVA', M + 15, resultTop + 13, c.white);
-        putFit(projection, money(quote.offer.revenue - quote.offer.net), M + 15, resultTop + 33, CW - 30, 24, 18, c.white, bold);
-        put(projection, `Ingresos: ${money(quote.offer.revenue)}  ·  Inversión sin IVA: ${money(quote.offer.net)}`, M + 15, resultTop + 72, 8.8, c.white);
-        paragraph(projection, `Si corresponde pagar IVA, la diferencia sería ${money(quote.offer.revenue - quote.offer.gross)}. La proyección no descuenta docentes, administración, infraestructura ni otros gastos o impuestos propios; no representa utilidad neta.`, M, resultTop + 119, CW, 9, 13, c.gray, regular, 4);
+        for (let start = 0; start < quote.levels.length; start += 4) {
+          const projection = doc.addPage([W, H]);
+          background(projection);
+          header(projection);
+          eyebrow(projection, 'PROYECCIÓN INSTITUCIONAL · OPCIONAL', M, 118);
+          put(projection, 'Una cuota por cada programa.', M, 139, 24, c.dark, bold);
+          paragraph(projection, 'GuateGeeks sugiere una referencia mensual por estudiante; el colegio decide su cobro final. Las diferencias se calculan antes de gastos propios.', M, 181, CW, 10, 15, c.gray, regular, 3);
+          const subset = quote.levels.slice(start, start + 4);
+          subset.forEach((level, index) => {
+            const top = 243 + index * 86;
+            box(projection, M, top, CW, 78, index % 2 ? c.white : c.pale, 0, c.border);
+            putFit(projection, `${start + index + 1}. ${level.label}`, M + 13, top + 10, CW - 26, 11.5, 9.5, c.dark, bold);
+            putFit(projection, `${level.program} · ${level.students} estudiantes`, M + 13, top + 27, CW - 26, 8.4, 7.5, c.gray);
+            put(projection, `Sugerido: ${money(level.offer.suggested)} / estudiante / mes`, M + 13, top + 49, 8.8, c.dark);
+            putRight(projection, `Ingreso: ${money(level.offer.revenue)}`, M + CW - 13, top + 29, 9.1, c.dark);
+            putRight(projection, `Diferencia sin IVA: ${money(level.offer.revenue - level.offer.net)}`, M + CW - 13, top + 49, 9.1, c.dark, bold);
+          });
+          if (start + subset.length === quote.levels.length) {
+            const resultTop = 261 + subset.length * 86;
+            box(projection, M, resultTop, CW, 103, c.dark);
+            eyebrow(projection, 'DIFERENCIA TOTAL ESTIMADA · SIN IVA', M + 15, resultTop + 13, c.white);
+            putFit(projection, money(quote.offer.revenue - quote.offer.net), M + 15, resultTop + 33, CW - 30, 24, 18, c.white, bold);
+            put(projection, `Ingresos: ${money(quote.offer.revenue)}  ·  Inversión sin IVA: ${money(quote.offer.net)}`, M + 15, resultTop + 72, 8.8, c.white);
+            paragraph(projection, `Si corresponde pagar IVA, la diferencia sería ${money(quote.offer.revenue - quote.offer.gross)}. La proyección no descuenta docentes, administración, infraestructura ni otros gastos o impuestos propios; no representa utilidad neta.`, M, resultTop + 119, CW, 9, 13, c.gray, regular, 4);
+          } else put(projection, 'Continúa en la página siguiente.', M, 722, 9, c.gray);
+        }
+      }
+      if (quote.levels.length > 4) {
+        for (let start = 0; start < quote.levels.length; start += 8) {
+          const finance = doc.addPage([W, H]);
+          background(finance);
+          header(finance);
+          eyebrow(finance, `DESGLOSE DE INVERSIÓN · ${Math.floor(start / 8) + 1}`, M, 120);
+          put(finance, 'Importes por programa.', M, 142, 23, c.dark, bold);
+          putFit(finance, `Para ${quote.school} · ${modality[quote.key]}`, M, 180, CW, 10, 8, c.gray);
+          quote.levels.slice(start, start + 8).forEach((level, index) => {
+            const top = 218 + index * 67;
+            box(finance, M, top, CW, 61, index % 2 ? c.white : c.pale);
+            box(finance, M, top, 3, 61, c.cyan);
+            putFit(finance, `${start + index + 1}. ${level.label}`, M + 13, top + 7, 310, 11.5, 9.5, c.dark, bold);
+            putFit(finance, `${level.program} · ${level.quantity} equipos · ${level.students} estudiantes`, M + 13, top + 26, 310, 8.5, 7.2, c.gray);
+            if (quote.key !== 'BUY') putFit(finance, `Sugerido: ${money(level.offer.suggested)} / estudiante / mes`, M + 13, top + 43, 310, 8.1, 7, c.dark);
+            putRight(finance, money(level.offer.net), M + CW - 13, top + 9, 13, c.dark, bold);
+            putRight(finance, `IVA ${money(level.offer.tax)} · con IVA ${money(level.offer.gross)}`, M + CW - 13, top + 34, 8, c.gray);
+          });
+        }
       }
       const count = doc.getPageCount();
       return saveInOrder([...Array(count - 1)].map((_, i) => i + 1).concat(0));
@@ -632,7 +699,7 @@
     if (!form.reportValidity()) return;
     const selectedLevels = isMulti() ? activeLevels() : null;
     if (selectedLevels ? (!selectedLevels.length || selectedLevels.some(level => level.invalid)) : !validScenario()) {
-      showError('Verifica los niveles, equipos y estudiantes de la cotización.');
+      showError('Verifica los programas, equipos y estudiantes de la cotización.');
       return;
     }
     if (!el('quote-school').value.trim()) { showError('Escribe el nombre de la institución educativa.'); el('quote-school').focus(); return; }
@@ -664,6 +731,7 @@
     const selected = el('mode').value;
     mode.value = selected === 'ALL' ? 'EVO16' : selected;
     scope.value = 'single';
+    levelList.replaceChildren();
     el('quote-bims').value = el('bims').value;
     el('quote-down').value = `.${Math.round(Number(el('down').value) * 10)}`;
     el('quote-single-tech').value = el('tech').value;
@@ -683,6 +751,24 @@
   el('quote-down').addEventListener('change', refreshSnapshot);
   el('quote-single').addEventListener('input', refreshSnapshot);
   el('quote-single').addEventListener('change', refreshSnapshot);
+  el('quote-start-multi').addEventListener('click', () => {
+    scope.value = 'multi';
+    refreshSnapshot();
+    addLevel();
+  });
+  el('quote-add-level').addEventListener('click', () => addLevel());
+  levelList.addEventListener('click', event => {
+    if (!event.target.closest('.quote-level-remove')) return;
+    event.target.closest('.quote-level').remove();
+    syncLevelControls();
+    refreshSnapshot();
+  });
+  levelList.addEventListener('change', event => {
+    if (!event.target.matches('.quote-level-stage')) return;
+    const definition = levelDefinitions.find(level => level.id === event.target.value);
+    event.target.closest('.quote-level').querySelector('.quote-level-tech').value = definition.tech;
+    refreshSnapshot();
+  });
   levelsContainer.addEventListener('input', refreshSnapshot);
   levelsContainer.addEventListener('change', refreshSnapshot);
   form.addEventListener('submit', submit);

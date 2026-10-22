@@ -55,68 +55,93 @@ test('calcula cada nivel con las fórmulas actuales sin cambiar el escenario vis
   } finally { await page.close(); }
 });
 
-test('la cotización multinivel separa los importes y suma solo los niveles elegidos', async () => {
+test('la cotización permite agregar y repetir niveles con equipos y estudiantes propios', async () => {
   const page = await newPage();
   try {
     await page.selectOption('#mode', 'EVO16');
     await page.click('#quote-open');
     await page.selectOption('#quote-scope', 'multi');
-    assert.equal(await page.locator('.quote-level').count(), 4);
-    await page.locator('[data-level="pre"] .quote-level-tech').selectOption('Snap');
-    await page.locator('[data-level="pre"] .quote-level-qty').fill('2');
-    await page.locator('[data-level="pre"] .quote-level-students').fill('24');
-    await page.locator('[data-level="primary-low"] .quote-level-enabled').uncheck();
-    await page.locator('[data-level="primary-high"] .quote-level-enabled').uncheck();
-    await page.locator('[data-level="secondary"] .quote-level-enabled').uncheck();
+    assert.equal(await page.locator('.quote-level').count(), 1);
+    await page.locator('.quote-level').first().locator('.quote-level-stage').selectOption('pre');
+    await page.locator('.quote-level').first().locator('.quote-level-tech').selectOption('Snap');
+    await page.locator('.quote-level').first().locator('.quote-level-qty').fill('2');
+    await page.locator('.quote-level').first().locator('.quote-level-students').fill('24');
     const expected = await page.evaluate(() => calculateScenario({tech:'Snap',qty:2,students:24,bims:1,down:.4,sm:.25}).EVO16.net);
-    assert.match(await page.locator('[data-level="pre"] .quote-level-reach').innerText(), /24 estudiantes alcanzados · 2 equipos/);
+    assert.match(await page.locator('.quote-level').first().locator('.quote-level-reach').innerText(), /24 estudiantes alcanzados · 2 equipos/);
     assert.match(await page.locator('#quote-snapshot').innerText(), new RegExp(expected.toLocaleString('es-GT', {minimumFractionDigits:2})));
-    assert.match(await page.locator('[data-level="pre"] .quote-level-suggested').innerText(), /Cobro sugerido: Q/);
-    await page.locator('[data-level="secondary"] .quote-level-enabled').check();
+    assert.match(await page.locator('.quote-level').first().locator('.quote-level-suggested').innerText(), /Cobro sugerido: Q/);
+    await page.click('#quote-add-level');
+    assert.equal(await page.locator('.quote-level').count(), 2);
+    await page.locator('.quote-level').last().locator('.quote-level-stage').selectOption('pre');
+    await page.locator('.quote-level').last().locator('.quote-level-tech').selectOption('Spike');
     const larger = await page.evaluate(() => calculateScenario({tech:'Spike',qty:5,students:60,bims:1,down:.4,sm:.25}).EVO16.net);
     assert.match(await page.locator('#quote-snapshot').innerText(), new RegExp((expected + larger).toLocaleString('es-GT', {minimumFractionDigits:2})));
-    await page.locator('[data-level="pre"] .quote-level-qty').fill('0');
+    assert.deepEqual(await page.locator('.quote-level-stage').evaluateAll(nodes => nodes.map(node => node.value)), ['pre', 'pre']);
+    await page.locator('.quote-level').last().locator('.quote-level-remove').click();
+    assert.equal(await page.locator('.quote-level').count(), 1);
+    await page.locator('.quote-level').first().locator('.quote-level-qty').fill('0');
     assert.equal(await page.locator('#quote-download').isDisabled(), true);
     await page.selectOption('#quote-mode', 'BUY');
-    assert.equal(await page.locator('#quote-scope').isDisabled(), true);
-    assert.equal(await page.inputValue('#quote-scope'), 'single');
-    assert.equal(await page.locator('#quote-levels').isVisible(), false);
-    assert.match(await page.locator('#quote-scope-help').innerText(), /compra directa.*por separado/i);
+    assert.equal(await page.locator('#quote-scope').isEnabled(), true);
+    assert.equal(await page.inputValue('#quote-scope'), 'multi');
+    assert.equal(await page.locator('#quote-levels').isVisible(), true);
+    assert.equal(await page.locator('#quote-projection').isDisabled(), true);
   } finally { await page.close(); }
 });
 
-test('descarga un PDF multinivel con bloques separados y mantiene INTEGRA individual', async () => {
+test('agregar otro programa desde la ficha inicial conserva el primero y abre una ficha nueva', async () => {
+  const page = await newPage();
+  try {
+    await page.click('#quote-open');
+    await page.selectOption('#quote-single-level', 'pre');
+    await page.selectOption('#quote-single-tech', 'TaleBot');
+    await page.fill('#quote-single-qty', '11');
+    await page.fill('#quote-single-students', '47');
+    await page.click('#quote-start-multi');
+    assert.equal(await page.inputValue('#quote-scope'), 'multi');
+    assert.equal(await page.locator('.quote-level').count(), 2);
+    assert.equal(await page.locator('.quote-level').first().locator('.quote-level-stage').inputValue(), 'pre');
+    assert.equal(await page.locator('.quote-level').first().locator('.quote-level-qty').inputValue(), '11');
+    assert.equal(await page.locator('.quote-level').first().locator('.quote-level-students').inputValue(), '47');
+  } finally { await page.close(); }
+});
+
+test('descarga programas agregables en varias páginas y permite INTEGRA multinivel', async () => {
   const page = await newPage();
   try {
     await page.selectOption('#mode', 'EVO16');
     await page.click('#quote-open');
     await page.fill('#quote-school', 'Instituto del Valle');
     await page.selectOption('#quote-scope', 'multi');
+    for (let i = 1; i < 5; i++) await page.click('#quote-add-level');
     const pending = page.waitForEvent('download');
     await page.click('#quote-download');
     const first = await pending;
     assert.match(first.suggestedFilename(), /instituto-del-valle-evoluciona-16-multinivel\.pdf$/);
     const multi = await PDFDocument.load(fs.readFileSync(await first.path()));
-    assert.equal(multi.getPageCount(), 4);
-    assert.match(multi.getSubject(), /4 niveles/);
+    assert.equal(multi.getPageCount(), 6);
+    assert.match(multi.getSubject(), /5 programas/);
 
     await page.click('#quote-open');
     await page.selectOption('#quote-scope', 'multi');
     await page.fill('#quote-school', 'Instituto del Valle');
     await page.check('#quote-projection');
+    for (let i = 1; i < 5; i++) await page.click('#quote-add-level');
     const next = page.waitForEvent('download');
     await page.click('#quote-download');
     const withProjection = await PDFDocument.load(fs.readFileSync(await (await next).path()));
-    assert.equal(withProjection.getPageCount(), 5);
+    assert.equal(withProjection.getPageCount(), 8);
 
     await page.selectOption('#mode', 'BUY');
     await page.click('#quote-open');
     await page.fill('#quote-school', 'Instituto del Valle');
-    assert.equal(await page.locator('#quote-scope').isDisabled(), true);
+    await page.selectOption('#quote-scope', 'multi');
+    await page.click('#quote-add-level');
+    assert.equal(await page.locator('#quote-scope').isEnabled(), true);
     const buyPending = page.waitForEvent('download');
     await page.click('#quote-download');
     const buy = await PDFDocument.load(fs.readFileSync(await (await buyPending).path()));
-    assert.equal(buy.getPageCount(), 2);
+    assert.equal(buy.getPageCount(), 3);
   } finally { await page.close(); }
 });
 
@@ -126,11 +151,28 @@ test('las recomendaciones de cada nivel conservan una línea legible en móvil',
     await page.goto(baseURL);
     await page.click('#quote-open');
     await page.selectOption('#quote-scope', 'multi');
-    const metrics = await page.locator('[data-level="primary-high"] .quote-level-suggested').evaluate(node => {
+    const metrics = await page.locator('.quote-level').first().locator('.quote-level-suggested').evaluate(node => {
       const style = getComputedStyle(node);
       return {height: node.getBoundingClientRect().height, lineHeight: parseFloat(style.lineHeight)};
     });
     assert.ok(metrics.height <= metrics.lineHeight * 2.2, 'La recomendación no debe crecer más de dos líneas.');
+  } finally { await page.close(); }
+});
+
+test('nueve programas generan páginas adicionales sin limitar la selección de niveles', async () => {
+  const page = await newPage();
+  try {
+    await page.selectOption('#mode', 'RENT');
+    await page.click('#quote-open');
+    await page.fill('#quote-school', 'Colegio Integral');
+    await page.selectOption('#quote-scope', 'multi');
+    for (let i = 1; i < 9; i++) await page.click('#quote-add-level');
+    assert.equal(await page.locator('.quote-level').count(), 9);
+    const pending = page.waitForEvent('download');
+    await page.click('#quote-download');
+    const pdf = await PDFDocument.load(fs.readFileSync(await (await pending).path()));
+    assert.equal(pdf.getPageCount(), 9);
+    assert.match(pdf.getSubject(), /9 programas/);
   } finally { await page.close(); }
 });
 
@@ -540,10 +582,10 @@ test('cambiar entre programa único y varios niveles ignora campos ocultos invá
     await page.selectOption('#quote-scope', 'multi');
     assert.equal(await page.locator('#quote-single-qty').isDisabled(), true);
     assert.equal(await page.locator('#quote-form').evaluate(form => form.checkValidity()), true);
-    await page.locator('[data-level="pre"] .quote-level-qty').fill('0');
+    await page.locator('.quote-level').first().locator('.quote-level-qty').fill('0');
     await page.selectOption('#quote-scope', 'single');
     await page.fill('#quote-single-qty', '2');
-    assert.equal(await page.locator('[data-level="pre"] .quote-level-qty').isDisabled(), true);
+    assert.equal(await page.locator('.quote-level').first().locator('.quote-level-qty').isDisabled(), true);
     assert.equal(await page.locator('#quote-form').evaluate(form => form.checkValidity()), true);
   } finally { await page.close(); }
 });

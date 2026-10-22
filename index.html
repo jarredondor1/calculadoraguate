@@ -50,7 +50,7 @@
       <label class="quote-field quote-wide"><span class="quote-field-label">Institución educativa <em>*</em></span><input id="quote-school" name="school" required maxlength="90" autocomplete="organization" placeholder="Nombre del centro educativo"></label>
       <h3 class="quote-step quote-wide"><span>01</span> Configura el programa</h3>
       <label class="quote-field quote-wide">Modalidad a cotizar <select id="quote-mode" name="mode"><option value="BUY">INTEGRA · compra</option><option value="RENT">FLEX · renta</option><option value="EVO8">EVOLUCIONA 8</option><option value="EVO16">EVOLUCIONA 16</option></select></label>
-      <label class="quote-field quote-wide">Alcance de la cotización <select id="quote-scope" name="scope"><option value="single">Un programa</option><option value="multi">Varios niveles educativos</option></select><small id="quote-scope-help" class="quote-field-help"></small></label>
+      <label class="quote-field quote-wide">Alcance de la cotización <select id="quote-scope" name="scope"><option value="single">Un programa</option><option value="multi">Varios programas o niveles</option></select><small id="quote-scope-help" class="quote-field-help"></small></label>
       <div id="quote-shared-terms" class="quote-shared-terms quote-wide">
         <label class="quote-field" id="quote-bims-field">Duración de FLEX <select id="quote-bims" name="bims"><option value="1">2 meses · 1 bimestre</option><option value="2">4 meses · 2 bimestres</option><option value="3">6 meses · 3 bimestres</option><option value="4">8 meses · 4 bimestres</option></select></label>
         <label class="quote-field" id="quote-down-field">Pago inicial de EVOLUCIONA <select id="quote-down" name="down"><option value=".2">20 % inicial</option><option value=".3">30 % inicial</option><option value=".4">40 % inicial</option></select></label>
@@ -63,6 +63,7 @@
           <label class="quote-field">Estudiantes que participarán <input id="quote-single-students" type="number" min="1" max="100000" step="1"></label>
         </div>
         <p class="quote-program-hint" id="quote-single-hint"></p>
+        <button id="quote-start-multi" class="quote-add-level" type="button">+ Agregar otro programa o nivel</button>
       </section>
       <div id="quote-levels" class="quote-levels quote-wide" hidden></div>
       <h3 class="quote-step quote-wide"><span>02</span> Personaliza la propuesta</h3>

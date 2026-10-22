@@ -138,12 +138,15 @@ body.institution-presentation .view-switch .quote-open{display:none}
 .quote-shared-terms .quote-field[hidden],.quote-levels[hidden]{display:none}
 .quote-levels{display:grid;gap:12px}
 .quote-levels-intro{margin:0;color:var(--gg-muted);font-size:13px;line-height:1.45}
+.quote-level-list{display:grid;gap:12px}
 .quote-level{border:1px solid #d8e5e9;border-left:4px solid var(--gg-sky);border-radius:13px;padding:15px;background:#fbfdfe;display:grid;gap:12px}
-.quote-level.is-disabled{opacity:.57;border-left-color:#bcc8cc;background:#f5f6f7}
 .quote-level-head{display:flex;align-items:center;justify-content:space-between;gap:12px}
-.quote-level-toggle{display:flex;align-items:center;gap:9px;color:var(--gg-plum-dark);font-weight:850;font-size:16px;cursor:pointer}
-.quote-level-toggle input{width:19px;height:19px;accent-color:var(--gg-sky);margin:0}
-.quote-level-fields{display:grid;grid-template-columns:1.4fr .7fr .8fr;gap:10px}
+.quote-level-title{color:var(--gg-plum-dark);font-weight:850;font-size:16px}
+.quote-level-remove{border:0;background:transparent;color:#a33e2d;font:inherit;font-size:13px;font-weight:750;cursor:pointer;padding:7px 9px;border-radius:8px}.quote-level-remove:hover{background:#fff0eb}
+.quote-level-remove:disabled{visibility:hidden}
+.quote-add-level{width:100%;min-height:48px;border:2px dashed #9dc8d4;border-radius:12px;background:#f3fafc;color:var(--gg-plum-dark);font:inherit;font-size:14px;font-weight:850;cursor:pointer}.quote-add-level:hover{background:#e6f5fa}
+.quote-single .quote-add-level{margin-top:14px}
+.quote-level-fields{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
 .quote-level-summary{display:flex;align-items:baseline;justify-content:space-between;gap:12px;padding-top:10px;border-top:1px solid #d8e5e9;color:var(--gg-muted);font-size:12px}
 .quote-level-summary strong{display:block;color:var(--gg-plum-dark);font-size:13px;line-height:1.4;text-align:right}
 .quote-level-summary small{display:block;margin-top:4px;color:var(--gg-muted);font-size:12px}
@@ -157,4 +160,4 @@ body.institution-presentation .view-switch .quote-open{display:none}
 .quote-actions{position:sticky;bottom:-32px;z-index:2;display:flex;justify-content:flex-end;gap:10px;margin:22px -32px -32px;padding:16px 32px 24px;border-top:1px solid var(--gg-border);background:#fff;box-shadow:0 -10px 18px rgba(30,22,45,.04)}
 .quote-actions button{min-height:46px;border-radius:10px;padding:11px 16px;font:inherit;font-size:14px;font-weight:800;cursor:pointer}
 .quote-cancel{background:#fff;border:1px solid var(--gg-border);color:var(--gg-plum-dark)}.quote-download{background:var(--gg-plum-dark);border:1px solid var(--gg-plum-dark);color:#fff}.quote-download:hover{background:#60477f}.quote-download:disabled{opacity:.6;cursor:wait}
-@media(max-width:640px){.view-switch .quote-open{margin-left:0;flex-basis:100%}.quote-form-grid,.quote-snapshot,.quote-shared-terms{grid-template-columns:1fr}.quote-level-fields,.quote-single .quote-level-fields{grid-template-columns:repeat(2,minmax(0,1fr))}.quote-level-fields .quote-level-tech-field{grid-column:1/-1}.quote-level-summary{display:block}.quote-level-summary strong{margin-top:8px;text-align:left}.quote-actions{bottom:-20px;margin:22px -20px -20px;padding:12px 20px 16px}.quote-actions button{flex:1}.quote-heading{margin-bottom:18px}}
+@media(max-width:640px){.view-switch .quote-open{margin-left:0;flex-basis:100%}.quote-form-grid,.quote-snapshot,.quote-shared-terms{grid-template-columns:1fr}.quote-level-fields,.quote-single .quote-level-fields{grid-template-columns:repeat(2,minmax(0,1fr))}.quote-level .quote-level-fields .quote-field:nth-child(-n+2),.quote-single .quote-level-fields .quote-field:nth-child(-n+2){grid-column:1/-1}.quote-level-summary{display:block}.quote-level-summary strong{margin-top:8px;text-align:left}.quote-actions{bottom:-20px;margin:22px -20px -20px;padding:12px 20px 16px}.quote-actions button{flex:1}.quote-heading{margin-bottom:18px}}
