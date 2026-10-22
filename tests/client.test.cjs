@@ -67,7 +67,7 @@ test('la cotización permite agregar y repetir niveles con equipos y estudiantes
     await page.locator('.quote-level').first().locator('.quote-level-qty').fill('2');
     await page.locator('.quote-level').first().locator('.quote-level-students').fill('24');
     const expected = await page.evaluate(() => calculateScenario({tech:'Snap',qty:2,students:24,bims:1,down:.4,sm:.25}).EVO16.net);
-    assert.match(await page.locator('.quote-level').first().locator('.quote-level-reach').innerText(), /24 estudiantes alcanzados · 2 equipos/);
+    assert.match(await page.locator('.quote-level').first().locator('.quote-level-reach').innerText(), /24 estudiantes · 2 equipos/);
     assert.match(await page.locator('#quote-snapshot').innerText(), new RegExp(expected.toLocaleString('es-GT', {minimumFractionDigits:2})));
     assert.match(await page.locator('.quote-level').first().locator('.quote-level-suggested').innerText(), /Cobro sugerido: Q/);
     await page.click('#quote-add-level');
@@ -131,6 +131,63 @@ test('cada programa permite escoger grados concretos sin perderlos al cambiar de
   } finally { await page.close(); }
 });
 
+test('dos niveles pueden compartir los mismos equipos y sumar estudiantes sin duplicar inversión', async () => {
+  const page = await newPage();
+  try {
+    await page.click('#quote-open');
+    await page.selectOption('#quote-mode', 'EVO16');
+    await page.selectOption('#quote-scope', 'multi');
+    const first = page.locator('.quote-level').first();
+    await first.locator('.quote-level-stage').selectOption('primary');
+    await first.locator('.quote-level-tech').selectOption('Spike');
+    await first.locator('.quote-level-qty').fill('5');
+    await first.locator('.quote-level-students').fill('60');
+    await page.click('#quote-add-level');
+    const second = page.locator('.quote-level').last();
+    await second.locator('.quote-level-stage').selectOption('basic');
+    await second.locator('.quote-level-tech').selectOption('Spike');
+    await second.locator('.quote-level-students').fill('40');
+    await second.locator('.quote-level-share').selectOption('1');
+    assert.equal(await second.locator('.quote-level-qty').isDisabled(), true);
+    assert.match(await second.locator('.quote-level-reach').innerText(), /5 equipos compartidos/);
+    const expected = await page.evaluate(() => calculateScenario({tech:'Spike',qty:5,students:100,bims:1,down:.4,sm:.25}).EVO16);
+    const snapshot = await page.locator('#quote-snapshot').innerText();
+    assert.match(snapshot, /5 equipos · 100 estudiantes/);
+    assert.ok(snapshot.includes(`Q ${expected.net.toLocaleString('es-GT',{minimumFractionDigits:2})}`));
+    assert.match(await second.locator('.quote-level-suggested').innerText(), new RegExp(expected.suggested.toFixed(2)));
+    await page.click('#quote-add-level');
+    const third = page.locator('.quote-level').last();
+    await third.locator('.quote-level-stage').selectOption('bach');
+    await third.locator('.quote-level-tech').selectOption('Spike');
+    await third.locator('.quote-level-students').fill('30');
+    await third.locator('.quote-level-share').selectOption('1');
+    assert.match(await page.locator('#quote-snapshot').innerText(), /5 equipos · 130 estudiantes/);
+    assert.ok((await page.locator('#quote-snapshot').innerText()).includes(`Q ${expected.net.toLocaleString('es-GT',{minimumFractionDigits:2})}`));
+    await second.locator('.quote-level-share').selectOption('own');
+    assert.equal(await second.locator('.quote-level-qty').isEnabled(), true);
+    assert.match(await page.locator('#quote-snapshot').innerText(), /10 equipos/);
+    await first.locator('.quote-level-tech').selectOption('Snap');
+    assert.equal(await third.locator('.quote-level-share').inputValue(), 'own');
+    assert.match(await page.locator('#quote-snapshot').innerText(), /15 equipos/);
+  } finally { await page.close(); }
+});
+
+test('la proyección se puede activar en programas y se oculta en compra directa', async () => {
+  const page = await newPage();
+  try {
+    await page.click('#quote-open');
+    await page.selectOption('#quote-mode', 'BUY');
+    assert.equal(await page.locator('#quote-projection-field').isVisible(), false);
+    await page.selectOption('#quote-mode', 'RENT');
+    assert.equal(await page.locator('#quote-projection-field').isVisible(), true);
+    assert.equal(await page.locator('#quote-projection').isEnabled(), true);
+    await page.check('#quote-projection');
+    assert.equal(await page.locator('#quote-projection').isChecked(), true);
+    await page.uncheck('#quote-projection');
+    assert.equal(await page.locator('#quote-projection').isChecked(), false);
+  } finally { await page.close(); }
+});
+
 test('descarga programas agregables en varias páginas y permite INTEGRA multinivel', async () => {
   const page = await newPage();
   try {
@@ -144,7 +201,7 @@ test('descarga programas agregables en varias páginas y permite INTEGRA multini
     const first = await pending;
     assert.match(first.suggestedFilename(), /instituto-del-valle-evoluciona-16-multinivel\.pdf$/);
     const multi = await PDFDocument.load(fs.readFileSync(await first.path()));
-    assert.equal(multi.getPageCount(), 6);
+    assert.equal(multi.getPageCount(), 7);
     assert.match(multi.getSubject(), /5 programas/);
 
     await page.click('#quote-open');
@@ -155,7 +212,7 @@ test('descarga programas agregables en varias páginas y permite INTEGRA multini
     const next = page.waitForEvent('download');
     await page.click('#quote-download');
     const withProjection = await PDFDocument.load(fs.readFileSync(await (await next).path()));
-    assert.equal(withProjection.getPageCount(), 8);
+    assert.equal(withProjection.getPageCount(), 9);
 
     await page.selectOption('#mode', 'BUY');
     await page.click('#quote-open');
@@ -166,7 +223,7 @@ test('descarga programas agregables en varias páginas y permite INTEGRA multini
     const buyPending = page.waitForEvent('download');
     await page.click('#quote-download');
     const buy = await PDFDocument.load(fs.readFileSync(await (await buyPending).path()));
-    assert.equal(buy.getPageCount(), 3);
+    assert.equal(buy.getPageCount(), 4);
   } finally { await page.close(); }
 });
 
@@ -196,7 +253,7 @@ test('nueve programas generan páginas adicionales sin limitar la selección de 
     const pending = page.waitForEvent('download');
     await page.click('#quote-download');
     const pdf = await PDFDocument.load(fs.readFileSync(await (await pending).path()));
-    assert.equal(pdf.getPageCount(), 9);
+    assert.equal(pdf.getPageCount(), 10);
     assert.match(pdf.getSubject(), /9 programas/);
   } finally { await page.close(); }
 });

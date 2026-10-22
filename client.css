@@ -132,6 +132,8 @@ body.institution-presentation .view-switch .quote-open{display:none}
 .quote-field{display:flex;flex-direction:column;gap:7px;font-weight:780;font-size:14px;color:var(--gg-ink);min-width:0}
 .quote-field .quote-field-label{color:var(--gg-ink)}.quote-field-label em{color:#b24c2b;font-style:normal}
 .quote-field-help{color:var(--gg-muted);font-weight:500;font-size:12px;line-height:1.45}
+.quote-share-field{padding:2px 0}.quote-share-field small{font-size:12px;font-weight:500}
+.quote-level-shared{border-left-color:#6e56a0;background:#faf8fd}.quote-level-shared .quote-level-qty{background:#f0edf5;color:#5a5164}
 .quote-field input,.quote-field select,.quote-field textarea{width:100%;min-height:46px;border:1px solid #cfc6d9;border-radius:10px;padding:10px 12px;background:#fff;color:var(--gg-ink);font:inherit;font-size:15px;font-weight:450;line-height:1.4}
 .quote-field textarea{resize:vertical;min-height:76px}
 .quote-shared-terms{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:15px}
@@ -160,6 +162,7 @@ body.institution-presentation .view-switch .quote-open{display:none}
 .quote-snapshot{display:grid;grid-template-columns:1.15fr .85fr;gap:10px;padding:14px;border-radius:12px;background:#f5f0f8;border:1px solid #e4d9eb;font-size:13px;color:var(--gg-plum-dark)}
 .quote-snapshot>div{min-width:0}.quote-snapshot span{display:block;font-size:11px;font-weight:850;letter-spacing:.04em;color:#6d5b83}.quote-snapshot strong{display:block;font-size:15px;line-height:1.4;margin-top:4px;overflow-wrap:anywhere}.quote-snapshot small{display:block;font-size:12px;color:var(--gg-muted);margin-top:3px}
 .quote-check{display:flex;align-items:flex-start;gap:10px;padding:12px 14px;background:#eaf7fa;border-radius:11px;color:#31535e;font-size:14px;font-weight:700;line-height:1.4;cursor:pointer}
+.quote-check[hidden]{display:none}
 .quote-check input{width:18px;height:18px;margin:1px 0 0;accent-color:var(--gg-plum);flex:0 0 auto}.quote-check:has(input:disabled){opacity:.65;cursor:not-allowed}
 .quote-privacy{font-size:12px;color:var(--gg-muted);line-height:1.45;margin:18px 0 0}
 .quote-error{margin-top:14px;border:1px solid #d98a7b;background:#fff4f2;color:#8b302a;padding:11px 12px;border-radius:9px;font-size:14px}
