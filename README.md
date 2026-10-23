@@ -16,7 +16,7 @@ El simulador muestra:
 - sugerencia de cobro mensual al estudiante;
 - ingreso y ganancia bruta estimada para la institución educativa;
 - costo directo, ganancia bruta y margen de GuateGeeks;
-- pagos iniciales y cuotas para EVOLUCIONA;
+- pagos iniciales y cuotas para FLEX (20 % inicial) y EVOLUCIONA;
 - comparación de ofertas y referencia básica de mercado.
 
 ## Presentación para la institución
@@ -29,7 +29,17 @@ La vista institucional destaca la inversión sin IVA y muestra el total con IVA 
 
 La ficha de CiudadBots enlaza al programa disponible; la referencia del Robot Cartógrafo conserva su atribución original a Ignat Khlebnikov / RoboRiseIT. Las fichas de robótica para pequeños y primaria muestran fotografías de equipos proporcionadas por GuateGeeks y actividades ilustrativas cuyo alcance debe confirmarse. La imagen de drones es una ilustración generada, inspirada en un dron educativo pequeño; el equipo y la actividad se confirman en la propuesta. Las fichas de electrónica y realidad virtual son referencias del catálogo de programas próximos y proceden del portal educativo de GuateGeeks.
 
-La sección del programa presenta **Socrates Aprende** mediante un recorrido animado compuesto por capturas reales de la semana 1, que se puede pausar, y enlaza a la plataforma. La muestra observada corresponde a sexto primaria; la disponibilidad de otros grados debe confirmarse en Socrates. La animación es una vista previa, no una conexión de datos con el simulador.
+La sección del programa presenta **Socrates Aprende** mediante un recorrido animado compuesto por capturas reales de la semana 1, que se puede pausar, y enlaza a la plataforma. La muestra observada corresponde a sexto primaria. La disponibilidad para estudiantes se comunica por fases; la animación es una vista previa, no una conexión de datos con el simulador.
+
+## Cotizaciones en PDF
+
+El botón **Crear cotización PDF** abre un formulario para indicar institución, contacto, ubicación, vigencia y una nota opcional. Elige una modalidad; cuando la calculadora está en **Comparar todas**, el formulario propone EVOLUCIONA 16 y permite cambiarla. La vista previa desglosa cada grupo de equipos, sus grados, estudiantes e importes antes de descargar. La inversión sin IVA tiene la mayor jerarquía; IVA y total con IVA se muestran debajo. El borrador se conserva únicamente en el almacenamiento local de este navegador para que no se pierdan cantidades al cerrar o recargar. **Nueva cotización** reinicia el formulario con el escenario actual del simulador. Nada se envía a un servidor.
+
+Cada ficha del cotizador representa **un grupo de equipos**: tecnología, cantidad de kits y todos los grados que utilizarán esos mismos equipos. Preprimaria se desglosa en Pre-Kínder, Kínder y Preparatoria; después se puede seleccionar cada grado de primaria, básicos y bachillerato, con estudiantes por grado. Spike Prime propone inicialmente 4.º a 6.º primaria, pero el usuario puede cambiar los grados. Los equipos se cotizan una vez por ficha y la sugerencia mensual por estudiante usa la suma de participantes de sus grados. El botón **Agregar otro grupo de equipos** crea otra ficha para un kit distinto; todas comparten la modalidad. El PDF usa una portada editorial con fotografías del aula, dedica una página visual a cada grupo para mostrar la experiencia, el kit y los estudiantes por grado, continúa con los servicios de la modalidad y cierra con la inversión. INTEGRA permanece como cotización de compra separada de FLEX y EVOLUCIONA. Su capacitación incluida es una sesión inicial de una hora; las horas adicionales y Socrates Aprende se presentan por separado como no incluidos.
+
+La proyección de cobro por estudiante se puede activar o desactivar en FLEX y EVOLUCIONA; en INTEGRA no aparece. Al activarla, el PDF dedica una sección anterior a la inversión final para mostrar el cobro mensual sugerido, los ingresos y la diferencia estimada antes de los gastos propios del colegio. Un solo grupo recibe un desglose visual de la estimación; varios grupos se detallan por separado. Al desactivarla, el PDF omite tanto la proyección como el cobro sugerido. El PDF excluye costos y resultados internos de GuateGeeks. El acceso a Socrates Aprende no está incluido en INTEGRA. Para las demás modalidades, el contenido estudiantil está disponible actualmente para 6.º primaria y se ampliará gradualmente a 5.º; hay recursos docentes y el tiempo de acceso se acuerda con GuateGeeks.
+
+La generación usa una copia local de `pdf-lib` en `assets/vendor/`, junto con su licencia, para que funcione en GitHub Pages sin cargar servicios externos. Las fotografías y el logo se incrustan desde `quote-assets.js`, lo que también permite descargar el PDF al abrir `index.html` como archivo local. Si se modifican las imágenes de `assets/quote-media/`, ejecuta `node scripts/build-quote-assets.cjs` para actualizar ese archivo. Las fotografías de aula representan experiencias conceptuales; no documentan necesariamente una clase de la institución cotizada. Las imágenes de TaleBot, Robot Master y Spike Prime son referencias de kit proporcionadas por GuateGeeks; las de electrónica, VR y drones son ilustrativas.
 
 La pantalla institucional oculta los costos y márgenes internos, pero **no protege su confidencialidad**: se encuentran en el HTML y JavaScript publicados por GitHub Pages. Para protegerlos es necesario restringir o separar el simulador interno y sus datos mediante una solución de acceso adecuada.
 
@@ -47,7 +57,7 @@ El sitio no necesita compilación ni dependencias para funcionar. Está preparad
 python3 -m http.server 8000
 ```
 
-Después, visita `http://localhost:8000/`. Los archivos `client.js`, `client.css` y `assets/` deben publicarse junto con `index.html`.
+Después, visita `http://localhost:8000/`. Los archivos `client.js`, `client.css`, `quote.js`, `quote-pdf.js`, `quote-assets.js` y `assets/` deben publicarse junto con `index.html`.
 
 ## Pruebas de desarrollo
 

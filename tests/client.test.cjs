@@ -4,6 +4,7 @@ const http = require('node:http');
 const fs = require('node:fs');
 const path = require('node:path');
 const {chromium} = require('playwright-core');
+const {PDFDocument} = require('pdf-lib');
 
 const root = path.resolve(__dirname, '..');
 let server, browser, baseURL;
@@ -34,6 +35,169 @@ async function newPage() {
   await page.goto(baseURL);
   return page;
 }
+
+test('calcula cada nivel con las fórmulas actuales sin cambiar el escenario visible', async () => {
+  const page = await newPage();
+  try {
+    const result = await page.evaluate(() => {
+      const before = calc();
+      const same = calculateScenario({tech: 'Spike', qty: 5, students: 60, bims: before.bims, down: before.down, sm: before.sm});
+      const preschool = calculateScenario({tech: 'TaleBot', qty: 3, students: 24, bims: before.bims, down: before.down, sm: before.sm});
+      const after = calc();
+      return {same: same.EVO16.net, original: before.EVO16.net, preschool: preschool.EVO16.net,
+        students: preschool.students, visible: after.EVO16.net, technology: document.querySelector('#tech').value};
+    });
+    assert.equal(result.same, result.original);
+    assert.notEqual(result.preschool, result.original);
+    assert.equal(result.students, 24);
+    assert.equal(result.visible, result.original);
+    assert.equal(result.technology, 'Spike');
+  } finally { await page.close(); }
+});
+
+test('Spike Prime comienza con 4.º a 6.º primaria y permite agregar cualquier grado al mismo kit', async () => {
+  const page = await newPage();
+  try {
+    await page.click('#quote-open');
+    const group = page.locator('.quote-level').first();
+    assert.equal(await group.locator('.quote-level-tech').inputValue(), 'Spike');
+    assert.equal(await group.locator('.quote-grade-row').count(), 14);
+    for (const id of ['p4', 'p5', 'p6']) assert.equal(await group.locator(`.quote-grade-row[data-grade="${id}"] .quote-grade-check`).isChecked(), true);
+    for (const id of ['pk', 'k', 'prep', 'p1', 'b1', 'h4']) assert.equal(await group.locator(`.quote-grade-row[data-grade="${id}"] .quote-grade-check`).isChecked(), false);
+    await group.locator('.quote-grade-row[data-grade="b1"] .quote-grade-check').check();
+    await group.locator('.quote-grade-row[data-grade="b1"] .quote-grade-students').fill('40');
+    await group.locator('.quote-grade-row[data-grade="h4"] .quote-grade-check').check();
+    await group.locator('.quote-grade-row[data-grade="h4"] .quote-grade-students').fill('30');
+    assert.match(await page.locator('#quote-snapshot').innerText(), /5 equipos · 130 estudiantes/);
+    const expected = await page.evaluate(() => calculateScenario({tech:'Spike',qty:5,students:130,bims:1,down:.4,sm:.25}).EVO16.net);
+    assert.ok((await page.locator('#quote-snapshot').innerText()).includes(`Q ${expected.toLocaleString('es-GT',{minimumFractionDigits:2})}`));
+  } finally { await page.close(); }
+});
+
+test('cambiar de tecnología propone grados apropiados sin borrar una selección personalizada', async () => {
+  const page = await newPage();
+  try {
+    await page.click('#quote-open');
+    const group = page.locator('.quote-level').first();
+    await group.locator('.quote-level-tech').selectOption('Robot Master');
+    assert.equal(await group.locator('.quote-grade-row[data-grade="p1"] .quote-grade-check').isChecked(), true);
+    assert.equal(await group.locator('.quote-grade-row[data-grade="p4"] .quote-grade-check').isChecked(), false);
+    await group.locator('.quote-grade-row[data-grade="p4"] .quote-grade-check').check();
+    await group.locator('.quote-grade-row[data-grade="p4"] .quote-grade-students').fill('12');
+    await group.locator('.quote-level-tech').selectOption('Spike');
+    assert.equal(await group.locator('.quote-grade-row[data-grade="p4"] .quote-grade-students').inputValue(), '12');
+    assert.equal(await group.locator('.quote-grade-row[data-grade="p1"] .quote-grade-check').isChecked(), true);
+    assert.match(await group.locator('.quote-tech-note').innerText(), /desde 4.º primaria/);
+  } finally { await page.close(); }
+});
+
+test('otro grupo de equipos se suma por separado y cada grado conserva sus estudiantes', async () => {
+  const page = await newPage();
+  try {
+    await page.click('#quote-open');
+    await page.click('#quote-add-level');
+    const second = page.locator('.quote-level').last();
+    await second.locator('.quote-level-tech').selectOption('TaleBot');
+    await second.locator('.quote-level-qty').fill('3');
+    for (const id of ['p4', 'p5', 'p6']) await second.locator(`.quote-grade-row[data-grade="${id}"] .quote-grade-check`).uncheck();
+    for (const id of ['pk', 'k', 'prep']) {
+      await second.locator(`.quote-grade-row[data-grade="${id}"] .quote-grade-check`).check();
+      await second.locator(`.quote-grade-row[data-grade="${id}"] .quote-grade-students`).fill('8');
+    }
+    assert.match(await page.locator('#quote-snapshot').innerText(), /2 grupos · 8 equipos · 84 estudiantes/);
+    await second.locator('.quote-level-remove').click();
+    assert.match(await page.locator('#quote-snapshot').innerText(), /1 grupo · 5 equipos · 60 estudiantes/);
+  } finally { await page.close(); }
+});
+
+test('preprimaria distingue sus tres grados y conserva 10 equipos al reabrir y recargar', async () => {
+  const page = await newPage();
+  try {
+    await page.click('#quote-open');
+    const group = page.locator('.quote-level').first();
+    await group.locator('.quote-level-tech').selectOption('TaleBot');
+    await group.locator('.quote-level-qty').fill('10');
+    for (const id of ['pk', 'k', 'prep']) assert.equal(await group.locator(`.quote-grade-row[data-grade="${id}"] .quote-grade-check`).isChecked(), true);
+    assert.match(await page.locator('#quote-snapshot').innerText(), /10 equipos/);
+    assert.match(await page.locator('#quote-snapshot').innerText(), /Pre-Kínder · Kínder · Preparatoria/);
+    await page.click('#quote-close');
+    await page.click('#quote-open');
+    assert.equal(await page.locator('.quote-level-qty').first().inputValue(), '10');
+    await page.click('#quote-close');
+    await page.reload();
+    await page.click('#quote-open');
+    assert.equal(await page.locator('.quote-level-qty').first().inputValue(), '10');
+    await page.click('#quote-reset');
+    assert.equal(await page.locator('.quote-level-qty').first().inputValue(), '5');
+  } finally { await page.close(); }
+});
+
+test('impide cotizar sin grados, con estudiantes inválidos o con cero equipos', async () => {
+  const page = await newPage();
+  try {
+    await page.click('#quote-open');
+    const group = page.locator('.quote-level').first();
+    for (const id of ['p4', 'p5', 'p6']) await group.locator(`.quote-grade-row[data-grade="${id}"] .quote-grade-check`).uncheck();
+    assert.equal(await page.locator('#quote-download').isDisabled(), true);
+    await group.locator('.quote-grade-row[data-grade="p4"] .quote-grade-check').check();
+    await group.locator('.quote-grade-row[data-grade="p4"] .quote-grade-students').fill('0');
+    assert.equal(await page.locator('#quote-download').isDisabled(), true);
+    await group.locator('.quote-grade-row[data-grade="p4"] .quote-grade-students').fill('20');
+    await group.locator('.quote-level-qty').fill('0');
+    assert.equal(await page.locator('#quote-download').isDisabled(), true);
+    await group.locator('.quote-level-qty').fill('2');
+    assert.equal(await page.locator('#quote-download').isEnabled(), true);
+  } finally { await page.close(); }
+});
+
+test('la proyección se puede activar en programas y se oculta en compra directa', async () => {
+  const page = await newPage();
+  try {
+    await page.click('#quote-open');
+    await page.selectOption('#quote-mode', 'BUY');
+    assert.equal(await page.locator('#quote-projection-field').isVisible(), false);
+    await page.selectOption('#quote-mode', 'RENT');
+    assert.equal(await page.locator('#quote-projection-field').isVisible(), true);
+    await page.check('#quote-projection');
+    assert.equal(await page.locator('#quote-projection').isChecked(), true);
+  } finally { await page.close(); }
+});
+
+test('el PDF crece con cada kit y deja el desglose financiero al final', async () => {
+  const page = await newPage();
+  try {
+    await page.click('#quote-open');
+    await page.fill('#quote-school', 'Colegio Integral');
+    await page.click('#quote-add-level');
+    await page.locator('.quote-level').last().locator('.quote-level-tech').selectOption('Robot Master');
+    const pending = page.waitForEvent('download');
+    await page.click('#quote-download');
+    const pdf = await PDFDocument.load(fs.readFileSync(await (await pending).path()));
+    assert.equal(pdf.getPageCount(), 5);
+    assert.match(pdf.getSubject(), /2 grupos de equipos/);
+    await page.click('#quote-open');
+    await page.fill('#quote-school', 'Colegio Integral');
+    await page.check('#quote-projection');
+    const projected = page.waitForEvent('download');
+    await page.click('#quote-download');
+    const withProjection = await PDFDocument.load(fs.readFileSync(await (await projected).path()));
+    assert.equal(withProjection.getPageCount(), 6);
+  } finally { await page.close(); }
+});
+
+test('nueve grupos de equipos caben en una misma propuesta con páginas adicionales', async () => {
+  const page = await newPage();
+  try {
+    await page.click('#quote-open');
+    await page.fill('#quote-school', 'Institución Multinivel');
+    for (let i = 1; i < 9; i++) await page.click('#quote-add-level');
+    assert.equal(await page.locator('.quote-level').count(), 9);
+    const pending = page.waitForEvent('download');
+    await page.click('#quote-download');
+    const pdf = await PDFDocument.load(fs.readFileSync(await (await pending).path()));
+    assert.equal(pdf.getPageCount(), 14);
+  } finally { await page.close(); }
+});
 
 test('la vista institucional se conecta en vivo y coincide con la calculadora', async () => {
   const page = await newPage();
@@ -379,5 +543,60 @@ test('opciones guardadas que ya no existen no rompen el simulador', async () => 
     await page.click('#client-view-button');
     assert.match(await page.locator('#client-project').innerText(), /Robot Cartógrafo/);
     assert.equal(await page.locator('#client-offers .client-offer').count(), 4);
+  } finally { await page.close(); }
+});
+
+test('el cotizador toma la modalidad y cantidades del simulador sin exponer costos internos', async () => {
+  const page = await newPage();
+  try {
+    await page.selectOption('#tech', 'TaleBot');
+    await page.selectOption('#mode', 'RENT');
+    await page.selectOption('#bims', '2');
+    await page.fill('#qty', '6');
+    await page.fill('#students', '48');
+    await page.click('#quote-open');
+    assert.equal(await page.inputValue('#quote-mode'), 'RENT');
+    assert.equal(await page.locator('.quote-level-tech').inputValue(), 'TaleBot');
+    assert.equal(await page.locator('.quote-level-qty').inputValue(), '6');
+    assert.match(await page.locator('#quote-snapshot').innerText(), /6 equipos · 48 estudiantes/);
+    assert.doesNotMatch(await page.locator('#quote-snapshot').innerText(), /Costo directo|Margen bruto GG|Ganancia bruta GG/);
+  } finally { await page.close(); }
+});
+
+test('la cotización PDF refleja varios grados en una sola ficha y se descarga en archivo local', async () => {
+  const page = await browser.newPage({acceptDownloads: true});
+  try {
+    await page.goto(`file://${path.join(root, 'index.html')}`);
+    await page.click('#quote-open');
+    await page.fill('#quote-school', 'Colegio Costa Sur');
+    await page.locator('.quote-grade-row[data-grade="b1"] .quote-grade-check').check();
+    await page.locator('.quote-grade-row[data-grade="b1"] .quote-grade-students').fill('40');
+    await page.check('#quote-projection');
+    const pending = page.waitForEvent('download');
+    await page.click('#quote-download');
+    const saved = await pending;
+    assert.match(saved.suggestedFilename(), /colegio-costa-sur-evoluciona-16\.pdf$/);
+    const bytes = fs.readFileSync(await saved.path());
+    const pdf = await PDFDocument.load(bytes);
+    assert.equal(pdf.getPageCount(), 5);
+    assert.ok(bytes.length > 200_000);
+  } finally { await page.close(); }
+});
+
+test('cada tecnología genera su propuesta con kit e imagen de aula', async () => {
+  const page = await newPage();
+  try {
+    for (const [tech, name] of [['TaleBot','Robótica para pequeños'],['Robot Master','Robótica para primaria'],['Spike','Robótica para grandes'],['Snap','Electrónica'],['Meta','Realidad virtual educativa'],['Drones','Drones Educativos']]) {
+      await page.selectOption('#tech', tech);
+      await page.selectOption('#mode', 'BUY');
+      await page.click('#quote-open');
+      await page.click('#quote-reset');
+      await page.fill('#quote-school', 'Colegio de prueba');
+      assert.match(await page.locator('.quote-level-tech').locator('option:checked').innerText(), new RegExp(name));
+      const pending = page.waitForEvent('download');
+      await page.click('#quote-download');
+      const pdf = await PDFDocument.load(fs.readFileSync(await (await pending).path()));
+      assert.equal(pdf.getPageCount(), 4, tech);
+    }
   } finally { await page.close(); }
 });

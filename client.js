@@ -43,17 +43,17 @@ const clientProjects = {
 };
 
 function clientConditions(key, data) {
-  if (key === 'BUY') return {term: 'Propiedad desde el inicio', support: 'Implementación y soporte inicial durante 2 meses.', basis: 'La equivalencia mensual usa 8 meses como referencia de cálculo.'};
-  if (key === 'RENT') return {term: `${data.RENT.months} meses · equipo en renta`, support: `Soporte y mantenimiento por desgaste normal durante ${data.RENT.months} meses.`, basis: 'Los equipos regresan a GuateGeeks al finalizar la renta.'};
+  if (key === 'BUY') return {term: 'Propiedad desde el inicio', support: 'Incluye 1 hora de capacitación de uso del equipo. Capacitación adicional se cotiza por separado.', basis: 'La equivalencia mensual usa 8 meses como referencia de cálculo.'};
+  if (key === 'RENT') return {term: `${data.RENT.months} meses · equipo en renta`, support: `Capacitación docente, integración tecnológica, seguimiento y soporte durante ${data.RENT.months} meses.`, basis: 'Los equipos regresan a GuateGeeks al finalizar la renta.'};
   const months = data[key].months;
-  return {term: `${months} meses · propiedad al finalizar`, support: `Acompañamiento, seguimiento y mantenimiento por desgaste normal durante ${months} meses.`, basis: 'El equipo queda en propiedad de la institución al completar el contrato.'};
+  return {term: `${months} meses · propiedad al finalizar`, support: `Capacitación docente, integración tecnológica, seguimiento y soporte durante ${months} meses.`, basis: 'El equipo queda en propiedad de la institución al completar el contrato.'};
 }
 
 function clientOffer(key, data) {
   const offer = data[key];
   const conditions = clientConditions(key, data);
-  const payment = key === 'EVO8' || key === 'EVO16'
-    ? `<div class="client-payment"><div><span>Pago inicial con IVA</span><strong>${fmt2(offer.initial)}</strong></div><div><span>${offer.months} cuotas mensuales con IVA</span><strong>${fmt2(offer.installment)}</strong></div></div>`
+  const payment = key !== 'BUY'
+    ? `<div class="client-payment"><div><span>Pago inicial con IVA${key === 'RENT' ? ' · 20 %' : ''}</span><strong>${fmt2(offer.initial)}</strong></div><div><span>${offer.months} cuotas mensuales con IVA</span><strong>${fmt2(offer.installment)}</strong></div></div>`
     : '';
   return `<article class="client-offer">
     <div class="client-offer-intro">
@@ -98,6 +98,20 @@ function renderClient(data, selected) {
     ? 'La propiedad, duración y soporte varían según la modalidad. Consulta las condiciones de cada alternativa.'
     : `${clientConditions(selected, data).support} ${clientConditions(selected, data).basis}`;
   document.getElementById('client-support').textContent = `Orientación para integrar el programa según las necesidades de la institución. ${conditions}`;
+  const socratesTitle = document.getElementById('socrates-title');
+  const socratesDescription = document.getElementById('socrates-description');
+  const socratesAvailability = document.getElementById('socrates-availability');
+  if (selected === 'BUY') {
+    socratesTitle.innerHTML = 'Conoce <em>Socrates Aprende.</em>';
+    socratesDescription.textContent = 'La plataforma no está incluida en INTEGRA. Está disponible como parte de FLEX y EVOLUCIONA.';
+  } else if (selected === 'ALL') {
+    socratesTitle.innerHTML = 'Conoce <em>Socrates Aprende.</em>';
+    socratesDescription.textContent = 'La plataforma se incluye en FLEX y EVOLUCIONA; INTEGRA no la incluye.';
+  } else {
+    socratesTitle.innerHTML = 'El aprendizaje sigue en <em>Socrates Aprende.</em>';
+    socratesDescription.textContent = 'Recursos docentes y experiencias digitales que acompañan el programa. El tiempo de acceso se acuerda con GuateGeeks.';
+  }
+  socratesAvailability.textContent = 'Contenido para estudiantes en fase actual: 4.º a sexto primaria. De preprimaria a 3.º primaria, acceso docente; básico y bachillerato vendrán en fases posteriores.';
 }
 
 function initClientView() {
