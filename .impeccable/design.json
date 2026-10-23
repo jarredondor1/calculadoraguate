@@ -1,0 +1,32 @@
+{
+  "schemaVersion": 2,
+  "generatedAt": "2026-10-23T00:00:00Z",
+  "title": "GuateGeeks Proposal PDF",
+  "extensions": {
+    "colorMeta": {
+      "brand-cyan": {"role": "primary", "displayName": "GuateGeeks cyan"},
+      "brand-plum": {"role": "frame", "displayName": "Editorial plum"},
+      "accent-orange": {"role": "accent", "displayName": "Creative orange"},
+      "warm-paper": {"role": "neutral", "displayName": "Warm paper"}
+    },
+    "typographyMeta": {
+      "display": {"displayName": "Proposal display", "purpose": "Slogan and final investment."},
+      "body": {"displayName": "Proposal body", "purpose": "Program descriptions and financial notes."}
+    },
+    "shadows": [],
+    "motion": [],
+    "breakpoints": []
+  },
+  "components": [],
+  "narrative": {
+    "northStar": "An educational editorial booklet",
+    "overview": "The A4 proposal shows the learning experience before the institution reviews investment. Classroom and kit photography lead; typography and precise rules carry the data.",
+    "keyCharacteristics": ["Large, purposeful imagery", "One kit per program spread", "Financial close with the amount without VAT as the primary figure"],
+    "rules": [
+      {"name": "Price comes last", "body": "Keep program and included services before financial terms.", "section": "layout"},
+      {"name": "Shared kit counted once", "body": "Grades can share equipment without multiplying its quoted quantity.", "section": "components"}
+    ],
+    "dos": ["Show VAT and payment terms clearly", "Use the GuateGeeks identity and motto"],
+    "donts": ["Do not show internal GuateGeeks margins", "Do not present Socrates as included in INTEGRA"]
+  }
+}
