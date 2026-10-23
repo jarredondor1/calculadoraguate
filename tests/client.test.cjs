@@ -61,9 +61,9 @@ test('Spike Prime comienza con 4.º a 6.º primaria y permite agregar cualquier 
     await page.click('#quote-open');
     const group = page.locator('.quote-level').first();
     assert.equal(await group.locator('.quote-level-tech').inputValue(), 'Spike');
-    assert.equal(await group.locator('.quote-grade-row').count(), 12);
+    assert.equal(await group.locator('.quote-grade-row').count(), 14);
     for (const id of ['p4', 'p5', 'p6']) assert.equal(await group.locator(`.quote-grade-row[data-grade="${id}"] .quote-grade-check`).isChecked(), true);
-    for (const id of ['pre', 'p1', 'b1', 'h4']) assert.equal(await group.locator(`.quote-grade-row[data-grade="${id}"] .quote-grade-check`).isChecked(), false);
+    for (const id of ['pk', 'k', 'prep', 'p1', 'b1', 'h4']) assert.equal(await group.locator(`.quote-grade-row[data-grade="${id}"] .quote-grade-check`).isChecked(), false);
     await group.locator('.quote-grade-row[data-grade="b1"] .quote-grade-check').check();
     await group.locator('.quote-grade-row[data-grade="b1"] .quote-grade-students').fill('40');
     await group.locator('.quote-grade-row[data-grade="h4"] .quote-grade-check').check();
@@ -100,11 +100,35 @@ test('otro grupo de equipos se suma por separado y cada grado conserva sus estud
     await second.locator('.quote-level-tech').selectOption('TaleBot');
     await second.locator('.quote-level-qty').fill('3');
     for (const id of ['p4', 'p5', 'p6']) await second.locator(`.quote-grade-row[data-grade="${id}"] .quote-grade-check`).uncheck();
-    await second.locator('.quote-grade-row[data-grade="pre"] .quote-grade-check').check();
-    await second.locator('.quote-grade-row[data-grade="pre"] .quote-grade-students').fill('24');
+    for (const id of ['pk', 'k', 'prep']) {
+      await second.locator(`.quote-grade-row[data-grade="${id}"] .quote-grade-check`).check();
+      await second.locator(`.quote-grade-row[data-grade="${id}"] .quote-grade-students`).fill('8');
+    }
     assert.match(await page.locator('#quote-snapshot').innerText(), /2 grupos · 8 equipos · 84 estudiantes/);
     await second.locator('.quote-level-remove').click();
     assert.match(await page.locator('#quote-snapshot').innerText(), /1 grupo · 5 equipos · 60 estudiantes/);
+  } finally { await page.close(); }
+});
+
+test('preprimaria distingue sus tres grados y conserva 10 equipos al reabrir y recargar', async () => {
+  const page = await newPage();
+  try {
+    await page.click('#quote-open');
+    const group = page.locator('.quote-level').first();
+    await group.locator('.quote-level-tech').selectOption('TaleBot');
+    await group.locator('.quote-level-qty').fill('10');
+    for (const id of ['pk', 'k', 'prep']) assert.equal(await group.locator(`.quote-grade-row[data-grade="${id}"] .quote-grade-check`).isChecked(), true);
+    assert.match(await page.locator('#quote-snapshot').innerText(), /10 equipos/);
+    assert.match(await page.locator('#quote-snapshot').innerText(), /Pre-Kínder · Kínder · Preparatoria/);
+    await page.click('#quote-close');
+    await page.click('#quote-open');
+    assert.equal(await page.locator('.quote-level-qty').first().inputValue(), '10');
+    await page.click('#quote-close');
+    await page.reload();
+    await page.click('#quote-open');
+    assert.equal(await page.locator('.quote-level-qty').first().inputValue(), '10');
+    await page.click('#quote-reset');
+    assert.equal(await page.locator('.quote-level-qty').first().inputValue(), '5');
   } finally { await page.close(); }
 });
 
@@ -157,7 +181,7 @@ test('el PDF crece con cada kit y deja el desglose financiero al final', async (
     const projected = page.waitForEvent('download');
     await page.click('#quote-download');
     const withProjection = await PDFDocument.load(fs.readFileSync(await (await projected).path()));
-    assert.equal(withProjection.getPageCount(), 5);
+    assert.equal(withProjection.getPageCount(), 6);
   } finally { await page.close(); }
 });
 
@@ -566,6 +590,7 @@ test('cada tecnología genera su propuesta con kit e imagen de aula', async () =
       await page.selectOption('#tech', tech);
       await page.selectOption('#mode', 'BUY');
       await page.click('#quote-open');
+      await page.click('#quote-reset');
       await page.fill('#quote-school', 'Colegio de prueba');
       assert.match(await page.locator('.quote-level-tech').locator('option:checked').innerText(), new RegExp(name));
       const pending = page.waitForEvent('download');
