@@ -255,7 +255,7 @@
 
   async function makePdf(quote) {
     if (!window.QUOTE_MEDIA) throw new Error('Faltan recursos visuales de la cotización.');
-    const {PDFDocument, StandardFonts, rgb} = PDFLib;
+    const {PDFDocument, StandardFonts, rgb, pushGraphicsState, popGraphicsState, rectangle, clip, endPath} = PDFLib;
     const doc = await PDFDocument.create();
     doc.setTitle(`Cotización GuateGeeks · ${quote.school}`);
     doc.setAuthor('GuateGeeks');
@@ -326,6 +326,14 @@
       const w = image.width * scale, h = image.height * scale;
       page.drawImage(image, {x: x + (width - w) / 2, y: H - top - (height + h) / 2, width: w, height: h});
     };
+    const imageCover = async (page, key, x, top, width, height) => {
+      const image = await getImage(key);
+      const scale = Math.max(width / image.width, height / image.height);
+      const w = image.width * scale, h = image.height * scale;
+      page.pushOperators(pushGraphicsState(), rectangle(x, H - top - height, width, height), clip(), endPath());
+      page.drawImage(image, {x: x + (width - w) / 2, y: H - top - (height + h) / 2, width: w, height: h});
+      page.pushOperators(popGraphicsState());
+    };
     const stroke = (page, x1, top1, x2, top2, thickness = 1.6) =>
       page.drawLine({start: {x: x1, y: H - top1}, end: {x: x2, y: H - top2}, color: c.cyan, thickness});
     const icon = (page, type, x, top) => {
@@ -385,10 +393,10 @@
       const p1 = doc.addPage([W, H]);
       background(p1);
       header(p1);
-      eyebrow(p1, 'INVERSIÓN FINAL POR GRUPO DE EQUIPOS', M, 120);
-      put(p1, 'Una inversión para crear.', M, 141, 23, c.dark, bold);
+      eyebrow(p1, 'DESGLOSE ECONÓMICO', M, 120);
+      put(p1, 'Inversión de la propuesta', M, 141, 23, c.dark, bold);
       putFit(p1, `Para ${quote.school}`, M, 181, CW, 13, 9, c.dark, bold);
-      paragraph(p1, 'Cada grupo de equipos atiende los grados elegidos. La complejidad de los proyectos crece con cada grado; el kit se cuenta una sola vez.', M, 207, CW, 10, 14, c.gray, regular, 2);
+      paragraph(p1, 'Cada grupo de equipos se cotiza una sola vez, aunque lo compartan varios grados. Los importes sin IVA son la referencia principal.', M, 207, CW, 10, 14, c.gray, regular, 2);
       box(p1, M, 239, CW, 72, c.paleBlue);
       eyebrow(p1, 'MODALIDAD DE LA PROPUESTA', M + 14, 249);
       putFit(p1, modality[quote.key], M + 14, 267, 190, 17, 13, c.dark, bold);
@@ -405,8 +413,8 @@
         putFit(p1, `${index + 1}. ${level.program}`, M + 13, top + 8, 265, 12, 10, c.dark, bold);
         putFit(p1, `${countText(level.gradeDetails.length, 'grado', 'grados')} · ${countText(level.equipmentQuantity, 'equipo', 'equipos')} · ${level.students} estudiantes`, M + 13, top + 29, 310, 8.6, 7.5, c.gray);
         if (quote.projection) putFit(p1, `Cobro mensual sugerido: ${money(level.offer.suggested)} por estudiante`, M + 13, top + 42, 310, 7.8, 7, c.dark);
-        putRight(p1, money(level.offer.net), M + CW - 13, top + 9, 13, c.dark, bold);
-        putRight(p1, 'sin IVA', M + CW - 13, top + 31, 8, c.gray);
+        putRight(p1, money(level.offer.net), M + CW - 13, top + 8, 13, c.dark, bold);
+        putRight(p1, `sin IVA · con IVA ${money(level.offer.gross)}`, M + CW - 13, top + 31, 8, c.gray);
       });
       const totalTop = 365 + summaryLevels.length * 58 + 19;
       box(p1, M, totalTop, CW, 140, c.dark);
@@ -429,6 +437,16 @@
       put(p1, `Emitida: ${dateText(quote.issued)}  ·  Vigente hasta: ${dateText(quote.expires)}`, M, Math.min(800, totalTop + 153), 8.6, c.gray);
       const contact = [quote.contact, quote.email, quote.location].filter(Boolean).join('  ·  ');
       if (contact) paragraph(p1, `Contacto: ${contact}`, M, Math.min(813, totalTop + 170), CW, 8.4, 11, c.gray, regular, 2);
+      if (quote.projection && quote.levels.length <= 2) {
+        const projectionTop = totalTop + 185;
+        box(p1, M, projectionTop, CW, 109, c.paleBlue);
+        eyebrow(p1, 'PROYECCIÓN OPCIONAL DE COBRO POR ESTUDIANTE', M + 13, projectionTop + 10);
+        put(p1, 'INGRESOS ESTIMADOS', M + 13, projectionTop + 32, 8, c.dark, bold);
+        putFit(p1, money(quote.offer.revenue), M + 13, projectionTop + 46, 222, 16, 13, c.dark, bold);
+        put(p1, 'DIFERENCIA ESTIMADA SIN IVA', M + 266, projectionTop + 32, 8, c.dark, bold);
+        putFit(p1, money(quote.offer.revenue - quote.offer.net), M + 266, projectionTop + 46, 237, 16, 13, c.dark, bold);
+        paragraph(p1, `Antes de gastos propios; no representa utilidad neta. Si corresponde IVA, la diferencia sería ${money(quote.offer.revenue - quote.offer.gross)}.`, M + 13, projectionTop + 77, CW - 26, 8.2, 11, c.gray, regular, 2);
+      }
       if (quote.levels.length > 4) {
         eyebrow(p1, 'ALCANCE CONSOLIDADO', M, 589);
         putFit(p1, `${quote.levels.length} grupos de equipos · ${quote.levels.reduce((sum, item) => sum + item.gradeDetails.length, 0)} asignaciones por grado`, M, 612, CW, 11, 9, c.dark, bold);
@@ -442,12 +460,22 @@
       put(cover, 'Imagina, diseña', M, 139, 29, c.dark, bold);
       put(cover, 'y crea.', M, 175, 30, c.cyan, bold);
       putFit(cover, `Para ${quote.school}`, M, 220, CW - 10, 14, 10, c.dark, bold);
-      paragraph(cover, 'Experiencias de robótica y tecnología para los grados seleccionados, con proyectos que avanzan en complejidad sin duplicar los equipos compartidos.', M, 245, CW, 10, 14, c.gray, regular, 2);
-      const hero = quote.levels[0];
-      await imageBox(cover, visual[hero.tech].classroom, M, 291, 330, 159);
-      await imageBox(cover, visual[hero.tech].product, M + 339, 291, CW - 339, 159, c.white);
-      put(cover, 'APRENDER HACIENDO', M, 455, 8, c.cyan, bold);
-      put(cover, 'CONOCE EL KIT', M + 339, 455, 8, c.cyan, bold);
+      paragraph(cover, 'Una propuesta para los grados seleccionados: equipos, experiencia en el aula y servicios según la modalidad elegida.', M, 245, CW, 10, 14, c.gray, regular, 2);
+      if (quote.levels.length === 1) {
+        const hero = quote.levels[0];
+        await imageCover(cover, visual[hero.tech].classroom, M, 291, 330, 159);
+        await imageBox(cover, visual[hero.tech].product, M + 339, 291, CW - 339, 159, c.white);
+        put(cover, 'EXPERIENCIA EN EL AULA', M, 455, 8, c.cyan, bold);
+        put(cover, 'KIT EDUCATIVO', M + 339, 455, 8, c.cyan, bold);
+      } else {
+        const featured = quote.levels.slice(0, 3);
+        const gap = 9, width = (CW - gap * (featured.length - 1)) / featured.length;
+        for (const [index, level] of featured.entries()) {
+          const x = M + index * (width + gap);
+          await imageCover(cover, visual[level.tech].classroom, x, 291, width, 159);
+          putFit(cover, level.program, x, 455, width, 8.2, 7, c.cyan, bold);
+        }
+      }
       eyebrow(cover, 'ALCANCE DE LA COTIZACIÓN', M, 477);
       box(cover, M, 498, CW, 28, c.paleBlue);
       put(cover, 'GRUPO DE EQUIPOS', M + 11, 505, 8, c.dark, bold);
@@ -499,7 +527,7 @@
         putFit(page, `${level.equipmentQuantity} ${level.equipmentQuantity === 1 ? 'equipo' : 'equipos'}  ·  ${level.students} estudiantes  ·  ${level.gradeDetails.length} ${level.gradeDetails.length === 1 ? 'grado' : 'grados'}`, M + 20, 188, CW - 40, 10, 8, c.paleBlue, bold);
         const view = visual[level.tech];
         const imageHeight = level.gradeDetails.length > 9 ? 156 : 208;
-        await imageBox(page, view.classroom, M, 235, 324, imageHeight);
+        await imageCover(page, view.classroom, M, 235, 324, imageHeight);
         await imageBox(page, view.product, M + 333, 235, CW - 333, imageHeight, c.white);
         put(page, 'EXPERIENCIA EN EL AULA', M, 241 + imageHeight, 8, c.cyan, bold);
         put(page, 'EL KIT EDUCATIVO', M + 333, 241 + imageHeight, 8, c.cyan, bold);
@@ -526,30 +554,32 @@
       background(services);
       header(services);
       eyebrow(services, 'QUÉ RECIBE LA INSTITUCIÓN', M, 119);
-      put(services, 'Una experiencia completa', M, 140, 23, c.dark, bold);
-      put(services, 'para cada nivel.', M, 171, 23, c.cyan, bold);
+      putFit(services, `Qué incluye ${modality[quote.key]}`, M, 142, CW, 24, 20, c.dark, bold);
+      putFit(services, `Propuesta para ${quote.school}`, M, 181, CW, 10, 9, c.gray);
       box(services, M, 221, CW, 75, c.paleBlue);
       eyebrow(services, modality[quote.key], M + 14, 233);
-      paragraph(services, `${quote.quantity} equipos en ${quote.levels.length} ${quote.levels.length === 1 ? 'grupo' : 'grupos'} para ${quote.students} estudiantes. Los grados de cada grupo comparten el kit y reciben retos de complejidad progresiva.`, M + 14, 253, CW - 28, 10, 14, c.dark, regular, 3);
+      paragraph(services, `${countText(quote.quantity, 'equipo', 'equipos')} en ${countText(quote.levels.length, 'grupo', 'grupos')} para ${quote.students} estudiantes. Cada grupo puede servir a varios grados.`, M + 14, 253, CW - 28, 10, 14, c.dark, regular, 3);
       const included = quote.key === 'BUY' ? [
-        ['equipment', 'Equipamiento educativo', 'Equipos adquiridos para los niveles cotizados.'],
-        ['launch', 'Puesta en marcha', 'Orientación para comenzar a utilizarlos.'],
-        ['training', 'Capacitación de uso', 'Incluye una hora de formación sobre cada equipo.'],
-        ['extra', 'Formación adicional', 'Horas adicionales disponibles por cotización.']
+        ['equipment', 'Equipamiento educativo', 'Kits para los grados detallados en esta propuesta.'],
+        ['launch', 'Puesta en marcha', 'Orientación inicial para comenzar a utilizarlos en clase.'],
+        ['training', 'Capacitación de uso', 'Una sesión inicial de 1 hora sobre el uso del equipo.']
       ] : [
-        ['equipment', 'Equipamiento educativo', 'Equipos para los niveles incluidos en esta propuesta.'],
-        ['planning', 'Planificación docente', 'Guías y retos alineados con el CNB.'],
-        ['training', 'Capacitación docente', 'Formación para enseñar con cada equipo.'],
-        ['integration', 'Integración tecnológica', 'Orientación para incorporarlo en clase.'],
-        ['platform', 'Socrates Aprende', 'Recursos docentes y acceso según el grado.'],
+        ['equipment', 'Equipamiento educativo', 'Kits asignados a los grados de esta propuesta.'],
+        ['planning', 'Planificación docente', 'Actividades y guías alineadas con el CNB.'],
+        ['training', 'Capacitación docente', 'Formación para utilizar los equipos en clase.'],
+        ['integration', 'Integración tecnológica', 'Orientación para incorporarlos en el aula.'],
+        ['platform', 'Socrates Aprende', 'Recursos docentes y contenido estudiantil según el grado.'],
         ['support', 'Soporte y seguimiento', `Acompañamiento durante ${quote.offer.months} meses.`]
       ];
       included.forEach(([symbol, title, description], i) => {
-        const x = M + (i % 2) * 264, top = 321 + Math.floor(i / 2) * 78;
-        box(services, x, top, 257, 71, c.white, 0, c.border);
-        icon(services, symbol, x + 11, top + 14);
-        putFit(services, title, x + 56, top + 11, 189, 11, 9.5, c.dark, bold);
-        paragraph(services, description, x + 56, top + 32, 188, 9.2, 12.5, c.gray, regular, 2);
+        const buy = quote.key === 'BUY';
+        const x = M + (buy ? 0 : (i % 2) * 264);
+        const top = 321 + (buy ? i : Math.floor(i / 2)) * 77;
+        const width = buy ? CW : 257;
+        icon(services, symbol, x + 2, top + 6);
+        putFit(services, title, x + 49, top + 5, width - 55, 11, 9.5, c.dark, bold);
+        paragraph(services, description, x + 49, top + 25, width - 58, 9.2, 12.5, c.gray, regular, 2);
+        rule(services, x, top + 67, width, c.border);
       });
       box(services, M, 579, CW, 159, c.paleBlue);
       eyebrow(services, 'DESTINO DEL EQUIPO', M + 13, 591);
@@ -559,10 +589,10 @@
           'En EVOLUCIONA 8, los equipos quedan en la institución al completar el ciclo de 8 meses.';
       paragraph(services, ownership, M + 13, 608, CW - 26, 9.5, 13, c.dark, regular, 3);
       rule(services, M + 13, 652, CW - 26, c.border);
-      eyebrow(services, 'SOCRATES APRENDE', M + 13, 663);
+      eyebrow(services, quote.key === 'BUY' ? 'NO INCLUIDO EN LA COMPRA' : 'SOCRATES APRENDE', M + 13, 663);
       const gradeIds = new Set(quote.levels.flatMap(level => level.grades));
       const platformNotes = [];
-      if (quote.key === 'BUY') platformNotes.push('Socrates Aprende no está incluido en INTEGRA. Puede cotizarse por separado.');
+      if (quote.key === 'BUY') platformNotes.push('Socrates Aprende no forma parte de INTEGRA. Las horas adicionales de capacitación se cotizan por separado.');
       else {
         if (gradeIds.has('p6') || gradeIds.has('p5')) platformNotes.push('Contenido estudiantil disponible hoy para 6.º primaria y gradualmente para 5.º.');
         if (['pk', 'k', 'prep'].some(id => gradeIds.has(id)) || [...gradeIds].some(id => /^p[1-4]$/.test(id))) platformNotes.push('Preprimaria y 1.º a 4.º primaria: recursos docentes.');
@@ -572,7 +602,7 @@
       paragraph(services, platformNotes.join(' '), M + 13, 680, CW - 26, 9.1, 12.5, c.dark, regular, 4);
       if (quote.note) paragraph(services, `Nota: ${quote.note}`, M, 755, CW, 8.2, 10, c.gray, regular, 2);
 
-      if (quote.projection) {
+      if (quote.projection && quote.levels.length > 2) {
         for (let start = 0; start < quote.levels.length; start += 4) {
           const projection = doc.addPage([W, H]);
           background(projection);

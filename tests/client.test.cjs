@@ -181,7 +181,7 @@ test('el PDF crece con cada kit y deja el desglose financiero al final', async (
     const projected = page.waitForEvent('download');
     await page.click('#quote-download');
     const withProjection = await PDFDocument.load(fs.readFileSync(await (await projected).path()));
-    assert.equal(withProjection.getPageCount(), 6);
+    assert.equal(withProjection.getPageCount(), 5);
   } finally { await page.close(); }
 });
 
@@ -578,7 +578,7 @@ test('la cotización PDF refleja varios grados en una sola ficha y se descarga e
     assert.match(saved.suggestedFilename(), /colegio-costa-sur-evoluciona-16\.pdf$/);
     const bytes = fs.readFileSync(await saved.path());
     const pdf = await PDFDocument.load(bytes);
-    assert.equal(pdf.getPageCount(), 5);
+    assert.equal(pdf.getPageCount(), 4);
     assert.ok(bytes.length > 200_000);
   } finally { await page.close(); }
 });
